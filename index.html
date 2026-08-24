@@ -1,14 +1,19 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MzApps</title>
-<style>body{margin:0;font-family:sans-serif;background:#0b141a;color:white}.header{background:#202c33;padding:15px;font-size:20px;font-weight:bold;position:sticky;top:0}.contact{padding:12px 15px;border-bottom:1px solid #1f2c34;display:flex;align-items:center}.avatar{width:42px;height:42px;background:#00a884;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:12px;font-weight:bold}.btn{background:#00a884;color:white;border:none;padding:14px;width:92%;margin:10px 4%;border-radius:10px;font-size:16px}small{color:#8696a0}a{color:#00a884;text-decoration:none;margin:0 10px}</style>
+<style>body{margin:0;font-family:sans-serif;background:#0b141a;color:white}.header{background:#202c33;padding:15px;font-size:20px;font-weight:bold;position:sticky;top:0}.contact{padding:12px 15px;border-bottom:1px solid #1f2c34;display:flex;align-items:center;cursor:pointer}.contact:active{background:#202c33}.avatar{width:42px;height:42px;background:#00a884;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:12px;font-weight:bold}.btn{background:#00a884;color:white;border:none;padding:12px;width:92%;margin:10px 4%;border-radius:10px;font-size:16px}small{color:#8696a0}.tabs{display:flex;justify-content:space-around;padding:10px;background:#202c33}.tabs a{color:#00a884;text-decoration:none}</style>
 </head><body>
-<div class="header">MzApps ONLINE - thawnthu</div>
-<div style="padding:10px;text-align:center"><a href="index.html">Chats</a><a href="status.html">Status</a><a href="calls.html">Calls</a></div>
+<div class="header">MzApps ONLINE</div>
+<div class="tabs"><a href="index.html">Chats</a><a href="status.html">Status</a><a href="calls.html">Calls</a></div>
 <button class="btn" onclick="loadContacts()">📞 Contact Load</button>
 <div id="list"><p style="text-align:center;color:#8696a0;padding:20px">Loading...</p></div>
 <script src="capacitor.js"></script>
 <script>
+function openChat(name, phone){
+  localStorage.setItem('chat_name', name);
+  localStorage.setItem('chat_phone', phone);
+  window.location.href='chat.html';
+}
 async function loadContacts(){
   const list=document.getElementById('list');
   try{
@@ -16,9 +21,12 @@ async function loadContacts(){
     await C.requestPermissions();
     const r=await C.getContacts({projection:{name:true,phones:true}});
     const c=r.contacts.filter(x=>x.name&&x.name.display);
-    if(!c.length){list.innerHTML="<p style='text-align:center;padding:20px'>Contact awm lo</p>";return;}
-    list.innerHTML=c.map(x=>`<div class="contact"><div class="avatar">${x.name.display[0].toUpperCase()}</div><div><b>${x.name.display}</b><br><small>${x.phones?.[0]?.number||''}</small></div></div>`).join('');
-  }catch(e){list.innerHTML=`<p style='text-align:center;padding:20px;color:#ff6b6b'>Error: ${e.message}<br>Settings > Apps > MzApps > Permissions > Allow</p>`;}
+    list.innerHTML=c.map(x=>{
+      const name=x.name.display.replace(/'/g,"");
+      const phone=(x.phones?.[0]?.number||'').replace(/'/g,"");
+      return `<div class="contact" onclick="openChat('${name}','${phone}')"><div class="avatar">${x.name.display[0].toUpperCase()}</div><div><b>${x.name.display}</b><br><small>${phone}</small></div></div>`;
+    }).join('');
+  }catch(e){list.innerHTML=`<p style='text-align:center;padding:20px'>${e.message}</p>`;}
 }
-window.addEventListener('load',()=>setTimeout(loadContacts,1000));
+window.addEventListener('load',()=>setTimeout(loadContacts,800));
 </script></body></html>
