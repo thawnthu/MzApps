@@ -1,61 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
-<title>MzApps Ultra</title>
-<meta name="theme-color" content="#000">
-<link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;MzApps&quot;,&quot;short_name&quot;:&quot;MzApps&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#000&quot;,&quot;theme_color&quot;:&quot;#000&quot;}">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MzApps Super</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{background:#000;color:#fff;font-family:-apple-system,system-ui;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
-.h{padding:12px 16px;border-bottom:1px solid #1a1a1a;display:flex;justify-content:space-between;align-items:center;font-weight:800}
-.c{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;scroll-behavior:smooth}
-.m{max-width:78%;padding:9px 12px;border-radius:18px;font-size:15px;line-height:1.3;word-break:break-word;animation:p .2s ease}
-.me{background:#fff;color:#000;align-self:flex-end;border-bottom-right-radius:4px}
-.ot{background:#1c1c1e;align-self:flex-start;border-bottom-left-radius:4px}
-.b{padding:8px 10px 12px;display:flex;gap:8px;align-items:center;border-top:1px solid #1a1a1a;background:#000}
-.b input{flex:1;background:#1c1c1e;border:none;padding:11px 14px;border-radius:22px;color:#fff;outline:none;font-size:16px}
-.b button{background:#fff;color:#000;border:none;width:38px;height:38px;border-radius:50%;font-weight:900;display:grid;place-items:center}
-@keyframes p{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-::-webkit-scrollbar{display:none}
+*{margin:0;padding:0;box-sizing:border-box}body{background:#000;color:#fff;font-family:system-ui;height:100dvh;display:flex;flex-direction:column;overflow:hidden}
+.top{background:#000;border-bottom:1px solid #222;padding:10px 14px;display:flex;justify-content:space-between;font-weight:900}
+.tabs{display:flex;background:#000;border-bottom:1px solid #222}
+.tabs button{flex:1;padding:12px;background:none;border:none;color:#666;font-weight:700;font-size:13px}
+.tabs button.on{color:#fff;border-bottom:2px solid #fff}
+.page{flex:1;overflow-y:auto;display:none}.page.on{display:flex;flex-direction:column}
+#c{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
+.m{max-width:78%;padding:8px 12px;border-radius:18px;font-size:14px}.me{background:#fff;color:#000;align-self:flex-end}.ot{background:#1c1c1e;align-self:flex-start}
+.b{padding:8px;display:flex;gap:8px;border-top:1px solid #222;background:#000}.b input{flex:1;background:#1c1c1e;border:none;padding:11px 14px;border-radius:22px;color:#fff;outline:none}
+.feed{padding:8px;display:flex;flex-direction:column;gap:8px}.post{background:#111;border:1px solid #222;border-radius:12px;overflow:hidden}.post .ph{padding:10px;display:flex;gap:8px;align-items:center}.post img{width:100%;max-height:380px;object-fit:cover}.act{display:flex;gap:16px;padding:10px;font-size:18px}
+.reel{height:100%;display:grid;place-items:center;background:#111;font-size:40px}
+#login{height:100dvh;display:grid;place-items:center;padding:20px;gap:12px}.box{width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px}.box input{padding:13px;border-radius:10px;border:none;background:#1c1c1e;color:#fff}
 </style>
 </head>
 <body>
-<div class="h"><span>MzApps ⚡ ULTRA</span><span id="s" style="font-size:11px;color:#0f0">● LIVE</span></div>
-<div id="c" class="c"></div>
-<div class="b"><input id="i" placeholder="Message..." autocomplete="off"><button onclick="S()">➤</button></div>
+<div id="login"><h1>MzApps SUPER ⚡</h1><p style="opacity:.6;font-size:13px">WhatsApp + Facebook + Instagram</p><div class="box"><input id="p" placeholder="Phone +91"><input id="n" placeholder="Hming"><button onclick="L()" style="padding:12px;border-radius:10px;border:none;background:#fff;font-weight:800">Lut rawh</button></div></div>
+
+<div id="app" style="display:none;height:100dvh;flex-direction:column">
+<div class="top"><span>MzApps</span><span id="uname" style="font-size:11px;opacity:.7"></span></div>
+<div class="tabs"><button id="t1" class="on" onclick="tab(1)">Chat 💬</button><button id="t2" onclick="tab(2)">Feed 📘</button><button id="t3" onclick="tab(3)">Reels 📸</button></div>
+
+<div id="pg1" class="page on"><div id="c"></div><div class="b"><input id="i" placeholder="Message..."><button onclick="S()" style="width:38px;height:38px;border-radius:50%;border:none;background:#fff">➤</button></div></div>
+
+<div id="pg2" class="page"><div style="padding:10px;display:flex;gap:8px"><input id="postTxt" placeholder="Eng nge i ngaihtuah?" style="flex:1;padding:12px;border-radius:22px;border:none;background:#1c1c1e;color:#fff"><button onclick="P()" style="padding:10px 16px;border-radius:20px;border:none;background:#fff;font-weight:800">Post</button></div><div id="feed" class="feed"></div></div>
+
+<div id="pg3" class="page"><div id="reels" class="feed"></div><div style="padding:10px"><input id="reelTxt" placeholder="Reel caption + pic URL (https://...)" style="width:100%;padding:12px;border-radius:22px;border:none;background:#1c1c1e;color:#fff"><button onclick="R()" style="width:100%;margin-top:8px;padding:12px;border-radius:10px;border:none;background:#fff;font-weight:800">Reel Post 📸</button></div></div>
+</div>
 
 <script type="module">
-// ULTRA FAST - NO REACT, NO VITE
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"
-import{getDatabase,ref,push,onChildAdded,serverTimestamp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
-
-const cfg={apiKey:"AIzaSyCYP1iIoI7KsJIcw0mP0s6_EYZ8JWmIQXU",authDomain:"thawnthu-e3b68.firebaseapp.com",databaseURL:"https://thawnthu-e3b68-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"thawnthu-e3b68"};
-const app=initializeApp(cfg),db=getDatabase(app);
-let me=localStorage.getItem("mz_u")||prompt("Hming:")||"User";localStorage.setItem("mz_u",me);
-
-const c=document.getElementById("c"),inp=document.getElementById("i");
-const r=ref(db,"ultra");
-
-onChildAdded(r,s=>{
-  let d=s.val();
-  let div=document.createElement("div");
-  div.className="m "+(d.u==me?"me":"ot");
-  div.innerHTML=`<div style="font-size:10px;opacity:.6">${d.u}</div>${d.m}`;
-  c.appendChild(div);
-  c.scrollTop=c.scrollHeight;
-});
-
-window.S=()=>{
-  if(!inp.value.trim())return;
-  push(r,{u:me,m:inp.value,t:serverTimestamp()});
-  inp.value="";
-};
+import{getDatabase,ref,push,onChildAdded,onValue}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
+const cfg={databaseURL:"https://thawnthu-e3b68-default-rtdb.asia-southeast1.firebasedatabase.app",apiKey:"AIzaSyCYP1iIoI7KsJIcw0mP0s6_EYZ8JWmIQXU",projectId:"thawnthu-e3b68"};
+const db=getDatabase(initializeApp(cfg));
+let me=JSON.parse(localStorage.getItem("mz_super")||"null");
+const ld=document.getElementById("login"),ad=document.getElementById("app");
+if(me){ld.style.display="none";ad.style.display="flex";document.getElementById("uname").innerText=me.n;init();}
+window.L=()=>{let ph=document.getElementById("p").value,n=document.getElementById("n").value;if(ph.length<5||!n)return alert("Phone leh Hming chhu rawh");me={p:ph,n:n};localStorage.setItem("mz_super",JSON.stringify(me));ld.style.display="none";ad.style.display="flex";document.getElementById("uname").innerText=n;init();};
+window.tab=(x)=>{document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("on"));document.querySelectorAll(".page").forEach(p=>p.classList.remove("on"));document.getElementById("t"+x).classList.add("on");document.getElementById("pg"+x).classList.add("on");};
+function init(){
+const c=document.getElementById("c"),inp=document.getElementById("i"),cr=ref(db,"super_chat");
+onChildAdded(cr,s=>{let d=s.val();let div=document.createElement("div");div.className="m "+(d.p==me.p?"me":"ot");div.innerHTML=`<div style='font-size:10px;opacity:.5'>${d.n}</div>${d.m}`;c.appendChild(div);c.scrollTop=c.scrollHeight;});
+window.S=()=>{if(!inp.value.trim())return;push(cr,{p:me.p,n:me.n,m:inp.value});inp.value="";};
 inp.onkeydown=e=>{if(e.key=="Enter")S()};
-
-// Preload
-c.innerHTML="<div class='m ot'>MzApps Ultra a nung! ⚡ 10x chak zawk!</div>";
+const fr=ref(db,"super_feed");const fd=document.getElementById("feed");
+onValue(fr,snap=>{fd.innerHTML="";let v=Object.values(snap.val()||{}).reverse();v.forEach((d:any)=>{fd.innerHTML+=`<div class=post><div class=ph><div style='width:32px;height:32px;background:#333;border-radius:50%'></div><b>${d.n}</b></div><div style='padding:0 10px 10px'>${d.m}</div><div class=act>❤️ 💬 ↗️</div></div>`})});
+window.P=()=>{let t=document.getElementById("postTxt") as any;if(!t.value)return;push(fr,{p:me.p,n:me.n,m:t.value});t.value="";};
+const rr=ref(db,"super_reels");const rd=document.getElementById("reels");
+onValue(rr,snap=>{rd.innerHTML="";let v=Object.values(snap.val()||{}).reverse();v.forEach((d:any)=>{rd.innerHTML+=`<div class=post><img src='${d.pic||"https://picsum.photos/400/600"}'><div class=ph><b>${d.n}</b> ${d.m}</div><div class=act>❤️ 💬</div></div>`})});
+window.R=()=>{let t=document.getElementById("reelTxt") as any;if(!t.value)return;let pic=t.value.startsWith("http")?t.value:"";let cap=pic? "My Reel 🔥" : t.value;push(rr,{p:me.p,n:me.n,m:cap,pic:pic||`https://picsum.photos/seed/${Date.now()}/400/600`});t.value="";};
+}
 </script>
 </body>
 </html>
