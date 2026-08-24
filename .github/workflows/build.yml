@@ -11,7 +11,7 @@ jobs:
           sudo apt-get install -y openjdk-17-jdk gradle
           rm -rf app gradle build.gradle settings.gradle gradlew
           mkdir -p app/src/main/java/com/mzapps/app
-          echo "pluginManagement{repositories{google();mavenCentral();gradlePluginPortal()}}include ':app'" > settings.gradle
+          echo "pluginManagement{repositories{google();mavenCentral();gradlePluginPortal()}};include ':app'" > settings.gradle
           echo "//empty" > build.gradle
           echo "plugins{id 'com.android.application'}android{namespace 'com.mzapps.app';compileSdk 34;defaultConfig{applicationId 'com.mzapps.app';minSdk 23;targetSdk 34;versionCode 1;versionName '1.0'}}buildTypes{debug{}}compileOptions{sourceCompatibility JavaVersion.VERSION_17;targetCompatibility JavaVersion.VERSION_17}}dependencies{}" > app/build.gradle
           mkdir -p app/src/main
