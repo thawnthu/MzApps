@@ -7,126 +7,126 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}body{background:#111b21;color:#fff;font-family:system-ui;height:100dvh}
-#login{height:100dvh;background:#111b21;display:flex;flex-direction:column;justify-content:center;padding:24px}
-.inp{padding:16px;border-radius:12px;border:none;background:#202c33;color:#fff;width:100%;margin-bottom:12px;font-size:16px;outline:none}
-.btn{padding:16px;border-radius:12px;border:none;background:#00a884;color:#111b21;font-weight:900;font-size:16px;width:100%}
-.top{background:#202c33;padding:14px 16px;display:flex;justify-content:space-between;font-weight:800;align-items:center}
-.list{flex:1;overflow-y:auto}.row{padding:12px 16px;display:flex;gap:12px;align-items:center;border-bottom:1px solid #1f2c33}
-.av{width:48px;height:48px;background:#00a884;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#000}
-.fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;background:#00a884;border-radius:50%;border:none;color:#111b21;font-size:28px;display:grid;place-items:center;z-index:5}
-#contacts,#chatPage{position:fixed;inset:0;background:#111b21;z-index:20;display:none;flex-direction:column}
-#c{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;background:#0b141a}
-.m{max-width:75%;padding:8px 12px;border-radius:8px;font-size:14.5px}.me{background:#005c4b;align-self:flex-end}.ot{background:#202c33;align-self:flex-start}
-.b{padding:8px;background:#202c33;display:flex;gap:8px}.b input{flex:1;background:#2a3942;border:none;padding:11px 14px;border-radius:22px;color:#fff;outline:none}
-.smallBtn{padding:10px;border-radius:8px;border:none;background:#00a884;color:#000;font-weight:700;width:100%;margin:10px}
+*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;color:#111b21;font-family:system-ui;height:100dvh;display:flex;flex-direction:column}
+.screen{height:100dvh;display:none;flex-direction:column;padding:24px;justify-content:center}
+.screen.on{display:flex}
+h1{font-size:22px;font-weight:400;text-align:center;margin-bottom:8px;color:#008069}
+.sub{font-size:14px;text-align:center;color:#667781;margin-bottom:24px;line-height:1.4}
+.inpRow{display:flex;gap:8px;margin-bottom:16px}.sel{padding:14px;border:none;border-bottom:2px solid #008069;background:#fff;outline:none}
+.inp{flex:1;padding:14px;border:none;border-bottom:2px solid #008069;outline:none;font-size:16px}
+.btn{padding:14px;border-radius:24px;border:none;background:#008069;color:#fff;font-weight:700;font-size:14px;width:120px;margin:20px auto;display:block}
+.otpBox{display:flex;gap:8px;justify-content:center;margin:20px 0}.otpBox input{width:40px;height:48px;text-align:center;font-size:20px;border:none;border-bottom:2px solid #008069;outline:none}
+.profilePic{width:100px;height:100px;border-radius:50%;background:#e9edef;margin:0 auto 20px;display:grid;place-items:center;font-size:40px;overflow:hidden}
+.top{background:#008069;color:#fff;padding:14px 16px;display:flex;justify-content:space-between;font-weight:800;align-items:center}
+.list{flex:1;overflow-y:auto}.row{padding:12px 16px;display:flex;gap:12px;align-items:center;border-bottom:1px solid #f0f2f5}
+.av{width:48px;height:48px;background:#00a884;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff}
+.fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;background:#00a884;border-radius:50%;border:none;color:#fff;font-size:28px;display:grid;place-items:center;z-index:5}
+#contacts,#chatPage{position:fixed;inset:0;background:#fff;z-index:20;display:none;flex-direction:column}
 </style>
 </head>
 <body>
 
-<div id="login"><h1>MzApps 💬</h1><br><input id="p" class="inp" placeholder="Phone 7005697815"><input id="n" class="inp" placeholder="Hming Nghaka"><button class="btn" onclick="loginNow()">Lut rawh</button></div>
+<!-- STEP 1: PHONE - WhatsApp ang -->
+<div id="s1" class="screen on">
+<h1 style="color:#008069">Phone number chhu lut rawh</h1>
+<p class="sub">MzApps hian i phone number a verify ang.<br>Country code leh phone number chhu rawh.</p>
+<div class="inpRow">
+<select id="cc" class="sel"><option value="+91">India +91</option><option value="+95">Myanmar +95</option></select>
+<input id="p" class="inp" type="tel" placeholder="phone number" maxlength="10">
+</div>
+<p class="sub" style="font-size:12px">SMS charge a awm mai thei. <a style="color:#008069">I phone number en dan?</a></p>
+<button class="btn" onclick="step1()">NEXT</button>
+</div>
 
+<!-- STEP 2: OTP - WhatsApp ang -->
+<div id="s2" class="screen">
+<h1>Verifying <span id="showPhone"></span></h1>
+<p class="sub">SMS in code 6-digit kan thawn. Code chhu rawh.</p>
+<div class="otpBox">
+<input id="o1" maxlength="1"><input id="o2" maxlength="1"><input id="o3" maxlength="1"><input id="o4" maxlength="1"><input id="o5" maxlength="1"><input id="o6" maxlength="1">
+</div>
+<p class="sub">Code: <b id="fakeOtp" style="color:#008069">123456</b> (Demo - WhatsApp ang a auto detect)</p>
+<button class="btn" onclick="step2()">VERIFY</button>
+<button onclick="back1()" style="background:none;border:none;color:#008069;margin:0 auto;display:block">Edit number</button>
+</div>
+
+<!-- STEP 3: PROFILE - WhatsApp ang -->
+<div id="s3" class="screen">
+<h1>Profile info</h1>
+<p class="sub">I hming leh profile photo chhu lut rawh</p>
+<div class="profilePic" id="picBox" onclick="document.getElementById('picInp').click()">📷</div>
+<input type="file" id="picInp" hidden accept="image/*" onchange="loadPic(event)">
+<input id="n" class="inp" placeholder="I hming (type rawh)" style="text-align:center">
+<p class="sub" style="font-size:12px">Hei hi i hming tak tak a ni lo. I profile ah a lang ang.</p>
+<button class="btn" onclick="step3()">NEXT</button>
+</div>
+
+<!-- STEP 4: MAIN CHAT LIST - WhatsApp ang -->
 <div id="main" style="display:none;flex-direction:column;height:100dvh">
-<div class="top"><span>MzApps</span><span id="uname" style="font-size:12px;color:#8696a0"></span></div>
+<div class="top"><span>MzApps</span><span id="uname" style="font-size:13px"></span></div>
 <div id="chatList" class="list"></div>
 <button class="fab" onclick="openContacts()">+</button>
 </div>
 
-<div id="contacts">
-<div class="top"><span onclick="closeContacts()">←</span> Contacts</div>
-<button class="smallBtn" onclick="pickContacts()">📱 Ka Phone Contact Load rawh</button>
-<div style="padding:8px;color:#8696a0;font-size:12px">MzApps hmangtu te:</div>
-<div id="contactList" class="list"></div>
-</div>
-
-<div id="chatPage"><div class="top"><span onclick="closeChat()">←</span> <span id="chatName"></span></div><div id="c"></div><div class="b"><input id="i" placeholder="Message"><button onclick="sendMsg()" style="background:#00a884;border:none;width:42px;height:42px;border-radius:50%">➤</button></div></div>
+<div id="contacts"><div class="top"><span onclick="closeContacts()">←</span> Contacts</div><button onclick="pickContacts()" style="padding:12px;margin:10px;border-radius:8px;border:none;background:#e9edef;width:calc(100% - 20px)">📱 Phone Contact Load</button><div id="contactList" class="list"></div></div>
+<div id="chatPage"><div class="top"><span onclick="closeChat()">←</span> <span id="chatName"></span></div><div id="c" style="flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;background:#e5ddd5"></div><div style="padding:8px;background:#f0f2f5;display:flex;gap:8px"><input id="i" placeholder="Message" style="flex:1;padding:11px 14px;border-radius:22px;border:none;outline:none"><button onclick="sendMsg()" style="background:#008069;border:none;width:42px;height:42px;border-radius:50%;color:#fff">➤</button></div></div>
 
 <script>
 const cfg={databaseURL:"https://thawnthu-e3b68-default-rtdb.asia-southeast1.firebasedatabase.app"};
 firebase.initializeApp(cfg);const db=firebase.database();
-let me=JSON.parse(localStorage.getItem("mz_super")||"null");let curChat=null;
-let myPhoneContacts=[];
+let me=JSON.parse(localStorage.getItem("mz_super")||"null");
+let cur=null, fakeCode="123456";
 
-function loginNow(){
-  let p=document.getElementById("p").value.trim(),n=document.getElementById("n").value.trim();
-  if(p.length<5||n.length<2){alert("Phone leh Hming!");return}
-  me={p:p,n:n};localStorage.setItem("mz_super",JSON.stringify(me));
-  db.ref("mz_users/"+p).set({p:p,n:n});showMain();
+if(me){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));document.getElementById("main").style.display="flex";document.getElementById("uname").innerText=me.n;loadChatList();}
+
+function step1(){
+  let p=document.getElementById("p").value.trim(),cc=document.getElementById("cc").value;
+  if(p.length<10){alert("Phone dik tak chhu rawh!");return}
+  fakeCode=Math.floor(100000+Math.random()*900000).toString();
+  document.getElementById("showPhone").innerText=cc+" "+p;
+  document.getElementById("fakeOtp").innerText=fakeCode;
+  document.getElementById("s1").classList.remove("on");document.getElementById("s2").classList.add("on");
+  // Auto fill OTP WhatsApp ang
+  setTimeout(()=>{let d=fakeCode.split("");for(let i=1;i<=6;i++)document.getElementById("o"+i).value=d[i-1];},1000);
 }
-function showMain(){document.getElementById("login").style.display="none";document.getElementById("main").style.display="flex";document.getElementById("uname").innerText=me.n;loadChatList();}
-if(me)showMain();
-
+function back1(){document.getElementById("s2").classList.remove("on");document.getElementById("s1").classList.add("on");}
+function step2(){
+  let code=["o1","o2","o3","o4","o5","o6"].map(id=>document.getElementById(id).value).join("");
+  if(code!=fakeCode){alert("Code dik lo! Code: "+fakeCode);return}
+  document.getElementById("s2").classList.remove("on");document.getElementById("s3").classList.add("on");
+}
+function loadPic(e){
+  let f=e.target.files[0];if(!f)return;
+  let r=new FileReader();r.onload=()=>{document.getElementById("picBox").innerHTML=`<img src="${r.result}" style="width:100%;height:100%;object-fit:cover">`;document.getElementById("picBox").dataset.url=r.result;};
+  r.readAsDataURL(f);
+}
+function step3(){
+  let n=document.getElementById("n").value.trim(),p=document.getElementById("p").value.trim();
+  if(n.length<2){alert("Hming chhu rawh!");return}
+  let pic=document.getElementById("picBox").dataset.url||"";
+  me={p:p,n:n,pic:pic};localStorage.setItem("mz_super",JSON.stringify(me));
+  db.ref("mz_users/"+p).set({p:p,n:n,pic:pic,time:Date.now()});
+  document.getElementById("s3").classList.remove("on");document.getElementById("main").style.display="flex";document.getElementById("uname").innerText=n;loadChatList();
+}
 function loadChatList(){
   db.ref("mz_chats/"+me.p).on("value",snap=>{
     let list=document.getElementById("chatList");let data=snap.val();
-    if(!data){list.innerHTML="<div style='padding:40px;text-align:center;color:#8696a0'>Chat a la awm lo<br><small>+ hmeh in tan rawh</small></div>";return}
-    list.innerHTML="";Object.entries(data).forEach(([phone,msgs])=>{
-      let arr=Object.values(msgs);let last=arr[arr.length-1];
-      let div=document.createElement("div");div.className="row";div.innerHTML=`<div class=av>${last.n[0]}</div><div><b>${last.n}</b><div style='font-size:13px;color:#8696a0'>${last.m.slice(0,30)}</div></div>`;
-      div.onclick=()=>openChat(phone,last.n);list.appendChild(div);
+    if(!data){list.innerHTML="<div style='padding:40px;text-align:center;color:#667781'>Chat a la awm lo<br><small>+ hmeh in tan rawh</small></div>";return}
+    list.innerHTML="";Object.entries(data).forEach(([ph,msgs])=>{
+      let last=Object.values(msgs).pop();let div=document.createElement("div");div.className="row";div.innerHTML=`<div class=av>${last.n[0]}</div><div><b>${last.n}</b><div style='font-size:13px;color:#667781'>${last.m.slice(0,30)}</div></div>`;div.onclick=()=>openChat(ph,last.n);list.appendChild(div);
     });
   });
 }
-
-// ** CONTACT PICKER - WhatsApp ang **
-async function pickContacts(){
-  try{
-    if(!("contacts" in navigator && "ContactsManager" in window)){
-      alert("He phone hian Contact Picker a support lo. Mahse MzApps hmangtu te ka lo load ang!");
-      loadMzUsers();
-      return;
-    }
-    let contacts=await navigator.contacts.select(["name","tel"],{multiple:true});
-    myPhoneContacts=contacts.map(c=>({name:c.name[0],phone:c.tel[0].replace(/[^0-9]/g,"").slice(-10)}));
-    alert(myPhoneContacts.length+" contact ka hmu!");
-    loadMzUsers();
-  }catch(e){alert("Contact thlan cancel / Error: "+e);loadMzUsers();}
-}
-
-function openContacts(){
-  document.getElementById("contacts").style.display="flex";
-  loadMzUsers();
-}
-function loadMzUsers(){
-  let cl=document.getElementById("contactList");cl.innerHTML="Loading MzApps users...";
-  db.ref("mz_users").once("value").then(snap=>{
-    let users=Object.values(snap.val()||{});
-    cl.innerHTML="";
-    let found=0;
-    users.forEach(u=>{
-      if(u.p==me.p)return;
-      // Phone contact nen match em check
-      let inMyPhone=myPhoneContacts.length==0 || myPhoneContacts.some(m=>m.phone.endsWith(u.p.slice(-6)));
-      if(myPhoneContacts.length>0 && !inMyPhone) return;
-      found++;
-      let div=document.createElement("div");div.className="row";
-      div.innerHTML=`<div class=av>${u.n[0]}</div><div style='flex:1'><b>${u.n}</b><div style='font-size:12px;color:#8696a0'>${u.p} • MzApps hmang</div></div><button style='padding:6px 12px;border-radius:20px;border:none;background:#00a884;font-weight:700'>Chat</button>`;
-      div.onclick=()=>openChat(u.p,u.n);cl.appendChild(div);
-    });
-    if(found==0 && myPhoneContacts.length==0){
-      cl.innerHTML+=`<div style='padding:20px;text-align:center;color:#8696a0'>MzApps hmangtu dang an la awm lo<br><br><b>Amawii</b> te invite rawh!</div>`;
-    }
-    if(myPhoneContacts.length>0){
-      // Invite list - phone a awm a MzApps hmang lo
-      let notUsing=myPhoneContacts.filter(m=>!users.some((u:any)=>u.p.includes(m.phone.slice(-6))));
-      if(notUsing.length>0){
-        cl.innerHTML+=`<div style='padding:10px;color:#8696a0;font-size:12px;border-top:1px solid #222;margin-top:10px'>Invite - MzApps hmang lo (${notUsing.length})</div>`;
-        notUsing.slice(0,20).forEach(c=>{
-          let d=document.createElement("div");d.className="row";
-          d.innerHTML=`<div class=av style='background:#333'>${c.name[0]}</div><div style='flex:1'><b>${c.name}</b><div style='font-size:12px;color:#8696a0'>${c.phone} • hmang lo</div></div><button onclick="navigator.share?navigator.share({title:'MzApps',text:'MzApps lo hmang ve rawh',url:location.href}):alert('Link: '+location.href)" style='padding:6px 12px;border-radius:20px;border:1px solid #00a884;background:none;color:#00a884'>Invite</button>`;
-          cl.appendChild(d);
-        });
-      }
-    }else{
-      cl.innerHTML+=`<div style='padding:10px;color:#8696a0;font-size:12px;border-top:1px solid #222'>Invite</div><div class=row><div class=av style='background:#333'>A</div><div style='flex:1'><b>Amawii</b><div style='font-size:12px;color:#8696a0'>98765 • hmang lo</div></div><button onclick="alert('Invite: '+location.href)" style='padding:6px 12px;border-radius:20px;border:1px solid #00a884;background:none;color:#00a884'>Invite</button></div>`;
-    }
-  });
-}
+function openContacts(){document.getElementById("contacts").style.display="flex";db.ref("mz_users").once("value").then(s=>{let cl=document.getElementById("contactList");cl.innerHTML="";Object.values(s.val()||{}).forEach((u:any)=>{if(u.p==me.p)return;let d=document.createElement("div");d.className="row";d.innerHTML=`<div class=av>${u.n[0]}</div><div style='flex:1'><b>${u.n}</b><div style='font-size:12px;color:#667781'>${u.p}</div></div>`;d.onclick=()=>openChat(u.p,u.n);cl.appendChild(d);});});}
 function closeContacts(){document.getElementById("contacts").style.display="none";}
-function openChat(ph,name){curChat=ph;closeContacts();document.getElementById("chatPage").style.display="flex";document.getElementById("chatName").innerText=name;document.getElementById("c").innerHTML="";db.ref(`mz_chats/${me.p}/${ph}`).on("child_added",s=>addMsg(s.val()));}
-function addMsg(d){let c=document.getElementById("c");let div=document.createElement("div");div.className="m "+(d.p==me.p?"me":"ot");div.innerText=d.m;c.appendChild(div);c.scrollTop=c.scrollHeight;}
-function closeChat(){document.getElementById("chatPage").style.display="none";curChat=null;}
-function sendMsg(){let inp=document.getElementById("i");if(!inp.value.trim()||!curChat)return;let msg={p:me.p,n:me.n,m:inp.value};db.ref(`mz_chats/${me.p}/${curChat}`).push(msg);db.ref(`mz_chats/${curChat}/${me.p}`).push(msg);inp.value="";}
+function openChat(ph,name){cur=ph;document.getElementById("contacts").style.display="none";document.getElementById("chatPage").style.display="flex";document.getElementById("chatName").innerText=name;document.getElementById("c").innerHTML="";db.ref(`mz_chats/${me.p}/${ph}`).on("child_added",s=>{let d=s.val();let c=document.getElementById("c");let div=document.createElement("div");div.style.cssText=`max-width:70%;padding:6px 10px;border-radius:8px;margin:2px;background:${d.p==me.p?'#dcf8c6':'#fff'};align-self:${d.p==me.p?'flex-end':'flex-start'}`;div.innerText=d.m;c.appendChild(div);c.scrollTop=c.scrollHeight;});}
+function closeChat(){document.getElementById("chatPage").style.display="none";cur=null;}
+function sendMsg(){let i=document.getElementById("i");if(!i.value.trim()||!cur)return;let m={p:me.p,n:me.n,m:i.value};db.ref(`mz_chats/${me.p}/${cur}`).push(m);db.ref(`mz_chats/${cur}/${me.p}`).push(m);i.value="";}
+async function pickContacts(){
+  try{let cs=await navigator.contacts.select(["name","tel"],{multiple:true});alert(cs.length+" contact hmuh!");}catch{alert("Contact picker support lo - MzApps users te ka load ang");}
+}
+// OTP auto next
+document.querySelectorAll(".otpBox input").forEach((inp,idx,arr)=>{inp.addEventListener("input",()=>{if(inp.value && idx<5)arr[idx+1].focus()})});
 </script>
 </body>
 </html>
