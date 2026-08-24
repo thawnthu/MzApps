@@ -3,14 +3,13 @@
 <title>MzApps</title>
 <style>
 body{background:#111b21;color:#fff;margin:0;font-family:sans-serif;height:100vh;display:flex;flex-direction:column}
-.h{background:#202c33;padding:14px;font-weight:bold;display:flex;justify-content:space-between}
+.h{background:#202c33;padding:14px;font-weight:bold;display:flex;justify-content:space-between;align-items:center}
 .tabs{display:flex;background:#202c33;color:#8696a0}.tabs div{flex:1;text-align:center;padding:14px;border-bottom:3px solid transparent}.tabs div.active{color:#00a884;border-color:#00a884}
 .searchBox{padding:8px;background:#111b21}.searchBox input{width:94%;padding:12px;border-radius:10px;border:none;background:#202c33;color:#fff;outline:none}
-.searchBox input:focus{border:1.5px solid #00a884}
 .list{flex:1;overflow:auto}.item{display:flex;gap:12px;padding:12px;border-bottom:1px solid #1f2c34;align-items:center}
 .avatar{width:48px;height:48px;border-radius:50%;background:#00a884;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0}
 .fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;background:#00a884;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;border:none;color:#fff}
-.modal{display:none;position:fixed;inset:0;background:#111b21;z-index:10;flex-direction:column}
+.modal{display:none;position:fixed;inset:0;background:#111b21;z-index:100;flex-direction:column}
 mark{background:#ffeb3b;color:#000;padding:1px 3px;border-radius:3px;font-weight:bold}
 .btnInvite{padding:7px 14px;border-radius:20px;border:1px solid #00a884;background:transparent;color:#00a884}
 .btnChat{padding:7px 18px;border-radius:20px;border:none;background:#00a884;color:#fff;font-weight:bold}
@@ -18,81 +17,67 @@ mark{background:#ffeb3b;color:#000;padding:1px 3px;border-radius:3px;font-weight
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head><body>
-<div class="h"><span>MzApps - <small id="myPh" style="color:#00a884"></small></span></div>
+<div class="h"><span>MzApps - <small id="myPh" style="color:#00a884"></small></span><span>⋮</span></div>
 <div class="tabs"><div id="tChat" class="active" onclick="showTab('chat')">Chats</div><div id="tStatus" onclick="showTab('status')">Status</div><div>Calls</div></div>
-<div class="searchBox"><input id="mainSearch" placeholder="Search chats..." oninput="filterChats()"></div>
+<div class="searchBox"><input id="mainSearch" placeholder="Search..." oninput="filterChats()"></div>
 <div id="chatList" class="list"></div>
 <div id="statusList" class="list" style="display:none"><div class="item" onclick="addStatus()"><div class="avatar" style="background:#333">+</div><div><b>My status</b><br><small>Add status</small></div></div><div id="statusItems"></div></div>
 <button class="fab" onclick="openContacts()">+</button>
 
 <div id="contactModal" class="modal">
- <div class="h"><span onclick="closeContacts()" style="font-size:24px">←</span><b>Select contact - <span id="cnt">0</span></b></div>
- <div class="searchBox"><input id="cSearch" placeholder="Search Miss etc..." oninput="filterContacts()" autofocus></div>
+ <div class="h"><span onclick="closeContacts()" style="font-size:24px">←</span><b>Contact - <span id="cnt">0</span></b></div>
+ <div class="searchBox"><input id="cSearch" placeholder="Search name..." oninput="filterContacts()"></div>
  <div id="contactList" class="list"></div>
 </div>
 
 <script>
 const firebaseConfig={apiKey:"AIzaSyBc6P6havWW5Re2V6FBPz3yToQ5i_ihAcw",authDomain:"thawnthu-e3b68.firebaseapp.com",databaseURL:"https://thawnthu-e3b68-default-rtdb.firebaseio.com",projectId:"thawnthu-e3b68"};
 firebase.initializeApp(firebaseConfig); const db=firebase.database();
-let myPhone=localStorage.getItem('myPhone'); 
+let myPhone=localStorage.getItem('myPhone');
 let allContacts=[]; let userMap={};
 
 function askPhone(){
  if(!myPhone){
-  let p=prompt("I phone number 10 digit dah rawh (e.g. 69098xxxxx) - Hei hi register na tur:");
-  if(p){ myPhone=p.replace(/\D/g,'').slice(-10); localStorage.setItem('myPhone',myPhone);
-   db.ref('users/'+myPhone).set({phone:myPhone,name:'Me',time:Date.now()});
-  }
+  let p=prompt("Phone number 10 digit (69098...):");
+  if(p){ myPhone=p.replace(/\D/g,'').slice(-10); localStorage.setItem('myPhone',myPhone); db.ref('users/'+myPhone).set({phone:myPhone,time:Date.now()}); }
  }
  document.getElementById('myPh').innerText=myPhone||'';
 }
-
-function highlightText(text, q){
- if(!q) return text;
- return text.replace(new RegExp(`(${q})`,'gi'),'<mark>$1</mark>');
-}
+function highlight(text,q){ if(!q) return text; return text.replace(new RegExp(`(${q})`,'gi'),'<mark>$1</mark>'); }
 
 function filterContacts(){
  let q=document.getElementById('cSearch').value.toLowerCase().trim();
- let items=document.querySelectorAll('#contactList .item');
- items.forEach(el=>{
-  let name=el.getAttribute('data-name').toLowerCase();
-  let show=name.includes(q) || q==='';
-  el.style.display=show?'flex':'none';
-  let bTag=el.querySelector('b');
-  let orig=bTag.getAttribute('data-orig');
-  bTag.innerHTML= q? highlightText(orig,q) : orig;
+ document.querySelectorAll('#contactList.item').forEach(el=>{
+  let name=el.getAttribute('data-name')||''; let show=name.toLowerCase().includes(q)||q===''; el.style.display=show?'flex':'none';
+  let b=el.querySelector('b'); let orig=b.getAttribute('data-orig'); b.innerHTML=q?highlight(orig,q):orig;
  });
 }
 function filterChats(){
  let q=document.getElementById('mainSearch').value.toLowerCase();
- document.querySelectorAll('#chatList .item').forEach(el=>{
-  let txt=el.getAttribute('data-name').toLowerCase();
-  el.style.display=txt.includes(q)||q===''?'flex':'none';
+ document.querySelectorAll('#chatList.item').forEach(el=>{
+  let name=el.getAttribute('data-name')||''; el.style.display=name.toLowerCase().includes(q)||q===''?'flex':'none';
  });
 }
-
 function showTab(t){
  document.getElementById('chatList').style.display=t==='chat'?'block':'none';
  document.getElementById('statusList').style.display=t==='status'?'block':'none';
 }
-
-function inviteFunc(name, phone){
- let msg=`Hey ${name}! MzApps - Mizo WhatsApp thar lo hmang ve rawh! Install rawh: https://github.com/...`;
- if(navigator.share){ navigator.share({title:'MzApps', text:msg}); }
- else{ window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank'); }
+function inviteFunc(name,ph){
+ let msg=`MzApps lo hmang ve rawh! https://thawnthu.github.io/MzApps`;
+ if(navigator.share){ navigator.share({text:msg}); } else { window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank'); }
 }
-
 async function openContacts(){
  document.getElementById('contactModal').style.display='flex';
- document.getElementById('cSearch').value=''; // reset
- // Load Firebase users first
- try{ let snap=await db.ref('users').once('value'); let vals=snap.val()||{}; userMap={}; Object.keys(vals).forEach(k=>userMap[k]=true); }catch(e){}
- 
+ document.getElementById('cSearch').value='';
+ try{ let snap=await db.ref('users').once('value'); let v=snap.val()||{}; userMap={}; Object.keys(v).forEach(k=>userMap[k]=true); }catch(e){}
  if(allContacts.length===0){
-  let P=window.Capacitor.Plugins.Contacts||window.Capacitor.Plugins.CapacitorCommunityContacts;
-  let res=await P.getContacts({projection:{name:true,phones:true}}); allContacts=res.contacts||[];
-  allContacts.sort((a,b)=>(a.name?.display||'').localeCompare(b.name?.display||''));
+  try{
+   let P=window.Capacitor.Plugins.Contacts||window.Capacitor.Plugins.CapacitorCommunityContacts||window.Capacitor.Plugins;
+   if(!P ||!P.Contacts){ alert("Permission pe rawh: Settings > Apps > MzApps > Contacts > Allow"); return; }
+   let perm=await P.Contacts.requestPermissions();
+   let res=await P.Contacts.getContacts({projection:{name:true,phones:true}});
+   allContacts=res.contacts||[]; allContacts.sort((a,b)=>(a.name?.display||'').localeCompare(b.name?.display||''));
+  }catch(e){ alert("Contact error: "+e.message+" - Settings ah permission pe rawh"); return; }
  }
  document.getElementById('cnt').innerText=allContacts.length;
  let list=document.getElementById('contactList'); list.innerHTML='';
@@ -101,19 +86,17 @@ async function openContacts(){
   let nm=c.name?.display||c.name?.given||'Unknown';
   let isUser=userMap[ph] && ph!==myPhone;
   let d=document.createElement('div'); d.className='item'; d.setAttribute('data-name',nm);
-  d.innerHTML=`<div class="avatar">${nm[0]}</div><div style="flex:1"><b data-orig="${nm}">${nm}</b><br><small style="color:#8696a0">${ph} ${isUser?'- MzApps user':''}</small></div>
-  ${isUser?`<button class="btnChat" onclick="event.stopPropagation();location.href='chat.html?user=${ph}&name=${encodeURIComponent(nm)}'">CHAT</button>`:`<button class="btnInvite" onclick="event.stopPropagation();inviteFunc('${nm.replace(/'/g,'')}', '${ph}')">INVITE</button>`}`;
+  d.innerHTML=`<div class="avatar">${nm[0]}</div><div style="flex:1"><b data-orig="${nm}">${nm}</b><br><small style="color:#8696a0">${ph}</small></div>${isUser?`<button class="btnChat">CHAT</button>`:`<button class="btnInvite" onclick="event.stopPropagation();inviteFunc('${nm}', '${ph}')">INVITE</button>`}`;
   d.onclick=()=>location.href=`chat.html?user=${ph}&name=${encodeURIComponent(nm)}`;
   list.appendChild(d);
  });
 }
 function closeContacts(){document.getElementById('contactModal').style.display='none'}
-
 function loadChats(){
  db.ref('messages').on('value',snap=>{
-  let chats=[]; snap.forEach(cs=>{let id=cs.key; if(!id.includes(myPhone))return; let msgs=Object.values(cs.val()); let last=msgs[msgs.length-1]; let other=id.split('_').find(x=>x!==myPhone); chats.push({ph:other,last: last, time:last.time})});
+  let chats=[]; snap.forEach(cs=>{let id=cs.key; if(!id.includes(myPhone))return; let msgs=Object.values(cs.val()); if(!msgs.length)return; let last=msgs[msgs.length-1]; let other=id.split('_').find(x=>x!==myPhone); chats.push({ph:other,last,time:last.time})});
   chats.sort((a,b)=>b.time-a.time);
-  let cl=document.getElementById('chatList'); cl.innerHTML=''; if(chats.length==0){cl.innerHTML='<div style="text-align:center;padding:40px;color:#8696a0">No chats yet<br>Tap + to start</div>'; return;}
+  let cl=document.getElementById('chatList'); cl.innerHTML=''; if(!chats.length){cl.innerHTML='<div style="text-align:center;padding:40px;color:#8696a0">No chats<br>Tap + to start</div>';return;}
   chats.forEach(c=>{
    let d=document.createElement('div'); d.className='item'; d.setAttribute('data-name',c.ph);
    d.innerHTML=`<div class="avatar">${c.ph.slice(-2)}</div><div style="flex:1"><b>${c.ph}</b><br><small>${c.last.text.slice(0,30)}</small></div><small>${new Date(c.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</small>`;
@@ -122,6 +105,5 @@ function loadChats(){
  });
 }
 function addStatus(){let t=prompt("Status:"); if(t) db.ref('status').push({name:myPhone,text:t,time:Date.now()});}
-
 askPhone(); loadChats();
 </script></body></html>
