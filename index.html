@@ -1,59 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MzApps</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
-body{background:#111b21;color:white;height:100vh;display:flex;flex-direction:column}
-.header{background:#008069;padding:12px 15px;display:flex;justify-content:space-between;align-items:center}
-.tabs{display:flex;background:#202c33}.tab{flex:1;padding:12px;text-align:center;border-bottom:3px solid transparent}.tab.active{border-color:#00a884;color:#00a884;font-weight:bold}
-.list{flex:1;overflow-y:auto}.contact{padding:12px 15px;border-bottom:1px solid #202c33;display:flex;gap:12px;align-items:center}
-.avatar{width:48px;height:48px;background:#00a884;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold}
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@capacitor/core@5/dist/capacitor.js"></script>
-</head>
-<body>
-<div class="header"><b>MzApps</b><small id="count">Loading...</small></div>
-<div class="tabs"><div class="tab active">💬 Chat</div></div>
-<div id="chatList" class="list"></div>
-<div style="padding:10px;background:#202c33"><button id="loadBtn" onclick="loadContacts()" style="width:100%;background:#00a884;color:white;border:none;padding:12px;border-radius:8px;font-weight:bold">📱 Ka Contact Dik Tak La Lut</button></div>
-
+<script src="capacitor.js"></script>
 <script>
-let contacts=JSON.parse(localStorage.getItem('mzcontacts')||'[]');
-function render(){
- document.getElementById('count').innerText=contacts.length+' contacts';
- let h=''; contacts.forEach(c=>{
-   let phone = c.phone || ''; // undefined fix
-   h+=`<div class="contact"><div class="avatar">${(c.name||'?')[0].toUpperCase()}</div><div><b>${c.name}</b><br><small style="opacity:0.6">${phone}</small></div></div>`;
- });
- document.getElementById('chatList').innerHTML = h || '<div style="padding:20px;text-align:center;opacity:0.6">Contact la awm lo, a hnuaia button hmeh rawh</div>';
+async function loadMzAppsContacts(){
+  try{
+    const { Contacts } = Capacitor.Plugins;
+    await Contacts.requestPermissions();
+    const res = await Contacts.getContacts({projection:{name:true, phones:true}});
+    let real = res.contacts.filter(c=>c.name).map(c=>({name:c.name.display, phone:c.phones?.[0]?.number||''}));
+    localStorage.setItem('mzcontacts', JSON.stringify(real));
+    location.reload();
+  }catch(e){ alert("Phalna pe rawh: Settings > MzApps > Contacts Allow"); }
 }
-async function loadContacts(){
- document.getElementById('chatList').innerHTML='<div style="padding:30px;text-align:center">Contact zawng mek...</div>';
- try{
-   if(window.Capacitor && Capacitor.Plugins.Contacts){
-     let p = await Capacitor.Plugins.Contacts.requestPermissions();
-     let r = await Capacitor.Plugins.Contacts.getContacts({projection:{name:true,phones:true}});
-     contacts = r.contacts.filter(x=>x.name?.display).map(x=>({name:x.name.display, phone:x.phones?.[0]?.number||'', letter:x.name.display[0].toUpperCase()}));
-     localStorage.setItem('mzcontacts',JSON.stringify(contacts));
-     render();
-     alert(contacts.length+' contact hmuh a ni - MzApps!');
-   } else if(navigator.contacts){
-     let list = await navigator.contacts.select(['name','tel'],{multiple:true});
-     contacts = list.map(c=>({name:c.name[0], phone:c.tel[0]||''}));
-     localStorage.setItem('mzcontacts',JSON.stringify(contacts));
-     render();
-   } else {
-     alert('He browser hian a support lo. APK ah chuan a thawk ang! Settings > Apps > MzApps > Allow Contacts');
-     render();
-   }
- }catch(e){ alert('Phalna pe rawh! Error: '+e.message); render();}
-}
-render();
-// Auto try on start if APK
-if(window.Capacitor){ loadContacts(); }
+if(window.Capacitor) loadMzAppsContacts();
 </script>
-</body>
-</html>
