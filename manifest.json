@@ -1,16 +1,9 @@
 {
   "name": "MzApps",
   "short_name": "MzApps",
-  "description": "WhatsApp Mizo - Mizoram chat chak ber",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#111b21",
+  "background_color": "#ffffff",
   "theme_color": "#008069",
-  "icons": [
-    {
-      "src": "https://cdn-icons-png.flaticon.com/512/733/733585.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  "icons": [{"src":"https://cdn-icons-png.flaticon.com/512/733/733585.png","sizes":"512x512","type":"image/png"}]
 }
