@@ -1,65 +1,52 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MzApps</title>
-<style>body{background:#111b21;color:#fff;margin:0;font-family:sans-serif}.header{background:#202c33;padding:15px;font-weight:bold}.tabs{display:flex;justify-content:space-around;background:#202c33;color:#00a884;padding:12px}.item{display:flex;justify-content:space-between;padding:14px;border-bottom:1px solid #222}.btn{padding:6px 14px;border-radius:20px;font-size:12px;border:none;font-weight:bold}.chat{background:#00a884;color:#fff}.invite{background:#333;color:#ccc}</style>
+<style>body{background:#111b21;color:#fff;margin:0;font-family:sans-serif}.header{background:#202c33;padding:15px;font-weight:bold}.tabs{display:flex;justify-content:space-around;background:#202c33;color:#00a884;padding:12px}.item{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid #222}.btn{padding:6px 14px;border-radius:20px;font-size:12px;border:none;font-weight:bold}.chat{background:#00a884;color:#fff}.invite{background:#333;color:#ccc}</style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head><body>
 <div class="header">MzApps - Contact Check</div>
 <div class="tabs"><span>Chats</span><span>Status</span><span>Calls</span></div>
-<div id="list" style="padding:20px;text-align:center;color:#8696a0">Loading...<br><small id="debug"></small></div>
+<div id="list" style="padding:20px;text-align:center;color:#8696a0">Loading 820 contacts...</div>
 <script>
 const firebaseConfig = {apiKey:"AIzaSyBc6P6havWW5Re2V6FBPz3yToQ5i_ihAcw",authDomain:"thawnthu-e3b68.firebaseapp.com",databaseURL:"https://thawnthu-e3b68-default-rtdb.firebaseio.com",projectId:"thawnthu-e3b68"};
 firebase.initializeApp(firebaseConfig); const db=firebase.database();
-const dbg = (t)=>{document.getElementById('debug').innerHTML+=t+"<br>"; console.log(t);};
 
 async function start(){
   const listDiv=document.getElementById('list');
-  dbg("App start...");
-  // TIMEOUT - 4 sec chhunga a load loh chuan force show
-  setTimeout(()=>{ if(listDiv.innerHTML.includes("Loading") || listDiv.innerHTML.includes("check mek")){ dbg("Timeout - showing help"); listDiv.innerHTML=`<div style='color:#fff'>Contact permission a dik lo.<br><br><b>Settings > Apps > MzApps > Permissions > Contacts > Allow</b> tih hnuah App ti tawp la open leh rawh.<br><br><button onclick='location.reload()' style='padding:10px 20px'>Reload</button></div>`; } },4000);
-
   try{
-    let ContactsPlugin = null;
-    if(window.Capacitor && window.Capacitor.Plugins) {
-        // Vawikhatna: Contacts, Vawihnihna: CapacitorCommunityContacts
-        ContactsPlugin = window.Capacitor.Plugins.Contacts || window.Capacitor.Plugins.CapacitorCommunityContacts || null;
-    }
-    dbg("Plugin: "+ (ContactsPlugin? "Found" : "Not found - "+Object.keys(window.Capacitor.Plugins||{}).join(',')));
+    let P = window.Capacitor.Plugins.Contacts || window.Capacitor.Plugins.CapacitorCommunityContacts;
+    const perm = await P.requestPermissions();
+    const res = await P.getContacts({projection:{name:true,phones:true}});
+    let contacts = res.contacts||[];
 
-    if(!ContactsPlugin){
-        listDiv.innerHTML = "Plugin not found.<br>Reinstall APK thar kha.<br><small>"+Object.keys(window.Capacitor.Plugins||{}).join(', ')+"</small>";
-        return;
-    }
-
-    dbg("Requesting permission...");
-    const perm = await ContactsPlugin.requestPermissions();
-    dbg("Perm: "+JSON.stringify(perm));
-    const result = await ContactsPlugin.getContacts({projection:{name:true,phones:true}});
-    const contacts = result.contacts || [];
-    dbg("Contacts found: "+contacts.length);
-
-    if(contacts.length===0){ listDiv.innerHTML="Contact a awm lo"; return; }
-
-    const snap = await db.ref('users').once('value');
-    const users = snap.val()||{};
-    const userPhones = new Set(Object.values(users).map(u=> (u.phone||'').replace(/\D/g,'').slice(-10) ));
-    dbg("Firebase users: "+userPhones.size);
-
+    // 1. SHOW CONTACTS IMMEDIATELY - Firebase nghak lo!
     listDiv.innerHTML=""; listDiv.style.textAlign="left";
     contacts.forEach(c=>{
-        if(!c.phones||!c.phones[0]) return;
-        let phone = c.phones[0].number.replace(/\D/g,'').slice(-10);
-        let name = c.name?.display || c.name?.given || "Unknown";
-        let isMz = userPhones.has(phone);
-        let div=document.createElement('div'); div.className="item";
-        div.innerHTML=`<span>${name}<br><small style='color:#8696a0'>${phone}</small></span><button class='btn ${isMz?'chat':'invite'}'>${isMz?'CHAT':'INVITE'}</button>`;
-        if(isMz) div.onclick=()=>location.href='chat.html?user='+phone;
-        listDiv.appendChild(div);
+      if(!c.phones||!c.phones[0]) return;
+      let phone = c.phones[0].number.replace(/\D/g,'').slice(-10);
+      let name = c.name?.display||c.name?.given||"Unknown";
+      let div=document.createElement('div'); div.className="item"; div.id="ph_"+phone;
+      div.innerHTML=`<span>${name}<br><small style='color:#8696a0'>${phone}</small></span><button class='btn invite' id='btn_${phone}'>INVITE</button>`;
+      listDiv.appendChild(div);
     });
-    if(listDiv.innerHTML==="") listDiv.innerHTML="Contact te phone no a awm lo";
 
-  }catch(e){ dbg("Error: "+e.message); document.getElementById('list').innerHTML="Error: "+e.message+"<br><button onclick='location.reload()'>Retry</button><br><small>"+e.stack+"</small>"; }
+    // 2. Firebase check in background - a rei pawhin contact a lang tawh
+    try{
+      const snap = await Promise.race([
+        db.ref('users').once('value'),
+        new Promise((_,rej)=>setTimeout(()=>rej("timeout"),5000))
+      ]);
+      const users = snap.val()||{};
+      const userPhones = new Set(Object.values(users).map(u=> (u.phone||'').replace(/\D/g,'').slice(-10)));
+      // Update buttons to CHAT if found
+      userPhones.forEach(ph=>{
+        let btn=document.getElementById('btn_'+ph);
+        if(btn){ btn.textContent='CHAT'; btn.className='btn chat'; btn.parentElement.onclick=()=>location.href='chat.html?user='+ph; }
+      });
+    }catch(e){ console.log("Firebase fail/timeout, showing INVITE only:", e); }
+
+  }catch(e){ listDiv.innerHTML="Error: "+e.message+"<br><button onclick='location.reload()'>Retry</button>"; }
 }
 start();
 </script></body></html>
