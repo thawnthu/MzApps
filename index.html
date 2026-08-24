@@ -5,23 +5,31 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MzApps</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}body{background:#111b21;color:#fff;font-family:system-ui;height:100dvh;display:flex;flex-direction:column}
-#login{height:100dvh;background:#111b21;display:grid;place-items:center;padding:24px}
-.box{width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px}.box input{padding:14px;border-radius:8px;border:none;background:#202c33;color:#fff}
-.top{background:#202c33;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;font-weight:800}
-.list{flex:1;overflow-y:auto}.row{padding:12px 16px;display:flex;gap:12px;align-items:center;border-bottom:1px solid #1f2c33}.row:active{background:#202c33}
-.av{width:48px;height:48px;background:#00a884;border-radius:50%;display:grid;place-items:center;font-weight:800}
-.fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;background:#00a884;border-radius:50%;border:none;color:#111b21;font-size:28px;display:grid;place-items:center;box-shadow:0 4px 12px #0008}
-#contacts{position:fixed;inset:0;background:#111b21;z-index:10;display:none;flex-direction:column}
-#chatPage{position:fixed;inset:0;background:#0b141a;z-index:20;display:none;flex-direction:column}
-#c{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px}
+*{margin:0;padding:0;box-sizing:border-box}body{background:#0a1014;color:#fff;font-family:system-ui;height:100dvh}
+#login{height:100dvh;background:#111b21;display:flex;flex-direction:column;justify-content:center;padding:24px}
+#login h1{font-size:32px;margin-bottom:20px}
+.inp{padding:16px;border-radius:12px;border:none;background:#202c33;color:#fff;width:100%;margin-bottom:12px;font-size:16px;outline:none}
+.btn{padding:16px;border-radius:12px;border:none;background:#00a884;color:#111b21;font-weight:900;font-size:16px;width:100%;cursor:pointer}
+.btn:active{transform:scale(.97)}
+.top{background:#202c33;padding:14px 16px;display:flex;justify-content:space-between;font-weight:800}
+.list{flex:1;overflow-y:auto}.row{padding:12px 16px;display:flex;gap:12px;align-items:center;border-bottom:1px solid #1f2c33}
+.av{width:48px;height:48px;background:#00a884;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#000}
+.fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;background:#00a884;border-radius:50%;border:none;color:#111b21;font-size:28px;display:grid;place-items:center}
+#contacts,#chatPage{position:fixed;inset:0;background:#111b21;z-index:10;display:none;flex-direction:column}
+#c{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;background:#0b141a}
 .m{max-width:75%;padding:6px 9px;border-radius:8px;font-size:14.5px}.me{background:#005c4b;align-self:flex-end}.ot{background:#202c33;align-self:flex-start}
 .b{padding:8px;background:#202c33;display:flex;gap:8px}.b input{flex:1;background:#2a3942;border:none;padding:11px 14px;border-radius:22px;color:#fff;outline:none}
 </style>
 </head>
 <body>
 
-<div id="login"><div class="box"><h1>MzApps 💬</h1><input id="p" placeholder="Phone +91"><input id="n" placeholder="Hming"><button onclick="L()" style="padding:14px;border-radius:8px;border:none;background:#00a884;font-weight:800">Lut rawh</button></div></div>
+<div id="login">
+<h1>MzApps 💬</h1>
+<input id="p" class="inp" placeholder="Phone 7005697815" value="">
+<input id="n" class="inp" placeholder="Hming Nghaka" value="">
+<button id="loginBtn" class="btn" onclick="loginNow()">Lut rawh</button>
+<p id="err" style="color:#ff5a5a;font-size:12px;margin-top:10px;text-align:center"></p>
+</div>
 
 <div id="main" style="display:none;flex-direction:column;height:100dvh">
 <div class="top"><span>MzApps</span><span id="uname" style="font-size:12px;color:#8696a0"></span></div>
@@ -29,75 +37,66 @@
 <button class="fab" onclick="openContacts()">+</button>
 </div>
 
-<div id="contacts"><div class="top"><span onclick="closeContacts()" style="cursor:pointer">←</span> Contacts <span style="font-size:12px">MzApps hmangtu</span></div><div id="contactList" class="list"></div></div>
+<div id="contacts"><div class="top"><span onclick="closeContacts()">←</span> Contacts</div><div id="contactList" class="list"></div></div>
+<div id="chatPage"><div class="top"><span onclick="closeChat()">←</span> <span id="chatName"></span></div><div id="c"></div><div class="b"><input id="i" placeholder="Message"><button onclick="sendMsg()" style="background:#00a884;border:none;width:42px;height:42px;border-radius:50%">➤</button></div></div>
 
-<div id="chatPage"><div class="top"><span onclick="closeChat()">←</span> <span id="chatName"></span></div><div id="c"></div><div class="b"><input id="i" placeholder="Message"><button onclick="S()" style="background:#00a884;border:none;width:42px;height:42px;border-radius:50%">➤</button></div></div>
+<script>
+// ** HEI HI A PAWIMAW BER - MODULE LO - 100% CLICK THEIH **
+function loginNow(){
+  let p=document.getElementById("p").value.trim();
+  let n=document.getElementById("n").value.trim();
+  let e=document.getElementById("err");
+  if(p.length<8){e.innerText="Phone dik lo!";return}
+  if(n.length<2){e.innerText="Hming chhu rawh!";return}
+  e.innerText="Lut mek...";
+  let me={p:p,n:n};
+  localStorage.setItem("mz_super",JSON.stringify(me));
+  document.getElementById("login").style.display="none";
+  document.getElementById("main").style.display="flex";
+  document.getElementById("uname").innerText=n;
+  // Firebase a hnua a thun ang - a tlai deuh pawn pawi lo
+  location.reload();
+}
+(function(){
+  let me=localStorage.getItem("mz_super");
+  if(me){
+    me=JSON.parse(me);
+    document.getElementById("login").style.display="none";
+    document.getElementById("main").style.display="flex";
+    document.getElementById("uname").innerText=me.n;
+    document.getElementById("p").value=me.p;
+    document.getElementById("n").value=me.n;
+  }
+})();
+</script>
 
 <script type="module">
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"
 import{getDatabase,ref,push,onChildAdded,set,get,onValue}from"https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
 const cfg={databaseURL:"https://thawnthu-e3b68-default-rtdb.asia-southeast1.firebasedatabase.app",apiKey:"AIzaSyCYP1iIoI7KsJIcw0mP0s6_EYZ8JWmIQXU",projectId:"thawnthu-e3b68"};
 const db=getDatabase(initializeApp(cfg));
-let me=JSON.parse(localStorage.getItem("mz_super")||"null"), curChat=null, chatUnsub=null;
-const ld=document.getElementById("login"), md=document.getElementById("main");
-if(me){ld.style.display="none";md.style.display="flex";document.getElementById("uname").innerText=me.n;init();}
-
-window.L=async()=>{let ph=document.getElementById("p").value.trim(),n=document.getElementById("n").value.trim();if(ph.length<5||!n)return alert("Phone leh Hming!");me={p:ph,n:n};localStorage.setItem("mz_super",JSON.stringify(me));await set(ref(db,"mz_users/"+ph),{p:ph,n:n,time:Date.now()});ld.style.display="none";md.style.display="flex";document.getElementById("uname").innerText=n;init();};
-
-async function init(){loadChatList();}
-
+let me=JSON.parse(localStorage.getItem("mz_super")||"null");
+if(me){set(ref(db,"mz_users/"+me.p),{p:me.p,n:me.n,time:Date.now()}); loadChatList();}
 function loadChatList(){
-  const list=document.getElementById("chatList");
+  if(!me)return;
   onValue(ref(db,"mz_chats/"+me.p),snap=>{
-    list.innerHTML="";
-    let data=snap.val()||{};
-    let chats=Object.entries(data);
+    let list=document.getElementById("chatList");list.innerHTML="";
+    let data=snap.val()||{};let chats=Object.entries(data);
     if(chats.length==0){list.innerHTML="<div style='padding:40px;text-align:center;color:#8696a0'>Chat a la awm lo<br><small>+ hmeh in tan rawh</small></div>";return}
-    chats.forEach(([phone,msgs])=>{
-      let last=Object.values(msgs as any).pop() as any;
-      list.innerHTML+=`<div class=row onclick="openChat('${phone}','${last.n}')"><div class=av>${last.n[0]}</div><div><b>${last.n}</b><div style='font-size:13px;color:#8696a0'>${last.m.slice(0,30)}</div></div></div>`;
-    });
+    chats.forEach(([phone,msgs])=>{let last=Object.values(msgs as any).pop() as any;list.innerHTML+=`<div class=row onclick="openChat('${phone}','${last.n}')"><div class=av>${last.n[0]}</div><div><b>${last.n}</b><div style='font-size:13px;color:#8696a0'>${last.m.slice(0,30)}</div></div></div>`});
   });
 }
-
 window.openContacts=async()=>{
   document.getElementById("contacts").style.display="flex";
-  const cl=document.getElementById("contactList");
-  cl.innerHTML="Loading...";
-  let snap=await get(ref(db,"mz_users"));
-  let users=Object.values(snap.val()||{}) as any[];
-  cl.innerHTML="";
-  users.filter((u:any)=>u.p!=me.p).forEach((u:any)=>{
-    cl.innerHTML+=`<div class=row onclick="openChat('${u.p}','${u.n}')"><div class=av>${u.n[0]}</div><div style='flex:1'><b>${u.n}</b><div style='font-size:12px;color:#8696a0'>${u.p} • MzApps hmang</div></div><button style='padding:6px 12px;border-radius:20px;border:none;background:#00a884;font-size:12px;font-weight:700'>Chat</button></div>`;
-  });
-  // Invite mock contacts
-  cl.innerHTML+=`<div style='padding:12px;color:#8696a0;font-size:12px;border-top:1px solid #222;margin-top:8px'>Invite</div>
-  <div class=row><div class=av style='background:#333'>A</div><div style='flex:1'><b>Amawii</b><div style='font-size:12px;color:#8696a0'>98765 00001 • hmang lo</div></div><button onclick="alert('Invite link: mz-apps.vercel.app')" style='padding:6px 12px;border-radius:20px;border:1px solid #00a884;background:none;color:#00a884;font-size:12px'>Invite</button></div>`;
+  let cl=document.getElementById("contactList");cl.innerHTML="Loading...";
+  try{let snap=await get(ref(db,"mz_users"));let users=Object.values(snap.val()||{}) as any[];cl.innerHTML="";users.filter((u:any)=>u.p!=me.p).forEach((u:any)=>{cl.innerHTML+=`<div class=row onclick="openChat('${u.p}','${u.n}')"><div class=av>${u.n[0]}</div><div style='flex:1'><b>${u.n}</b><div style='font-size:12px;color:#8696a0'>${u.p}</div></div><button style='padding:6px 12px;border-radius:20px;border:none;background:#00a884;font-weight:700'>Chat</button></div>`});}catch{cl.innerHTML="Contacts load theih lo - internet check rawh";}
 };
 window.closeContacts=()=>document.getElementById("contacts").style.display="none";
-
-window.openChat=(phone,name)=>{
-  curChat=phone;
-  document.getElementById("contacts").style.display="none";
-  document.getElementById("chatPage").style.display="flex";
-  document.getElementById("chatName").innerText=name;
-  const c=document.getElementById("c");c.innerHTML="";
-  // Load chat: 2-way
-  let path1=ref(db,`mz_chats/${me.p}/${phone}`), path2=ref(db,`mz_chats/${phone}/${me.p}`);
-  onChildAdded(path1,s=>{let d=s.val();addMsg(d, d.p==me.p);});
-  onChildAdded(path2,s=>{let d=s.val();if(document.getElementById("chatPage").style.display=="flex") addMsg(d, d.p==me.p);});
-};
-function addMsg(d,isMe){
-  const c=document.getElementById("c");let div=document.createElement("div");div.className="m "+(isMe?"me":"ot");div.innerText=d.m;c.appendChild(div);c.scrollTop=c.scrollHeight;
-}
-window.closeChat=()=>{document.getElementById("chatPage").style.display="none";curChat=null;loadChatList();};
-window.S=async()=>{
-  let inp=document.getElementById("i") as any;if(!inp.value.trim()||!curChat)return;
-  let msg={p:me.p,n:me.n,m:inp.value,time:Date.now()};
-  await push(ref(db,`mz_chats/${me.p}/${curChat}`),msg);
-  await push(ref(db,`mz_chats/${curChat}/${me.p}`),msg);
-  inp.value="";
-};
+let cur=null;
+window.openChat=(ph,name)=>{cur=ph;document.getElementById("contacts").style.display="none";document.getElementById("chatPage").style.display="flex";document.getElementById("chatName").innerText=name;document.getElementById("c").innerHTML="";let p1=ref(db,`mz_chats/${me.p}/${ph}`);onChildAdded(p1,s=>add(s.val()));};
+function add(d){let c=document.getElementById("c");let div=document.createElement("div");div.className="m "+(d.p==me.p?"me":"ot");div.innerText=d.m;c.appendChild(div);c.scrollTop=c.scrollHeight;}
+window.closeChat=()=>{document.getElementById("chatPage").style.display="none";cur=null;};
+window.sendMsg=async()=>{let inp=document.getElementById("i") as any;if(!inp.value.trim()||!cur)return;let msg={p:me.p,n:me.n,m:inp.value,time:Date.now()};await push(ref(db,`mz_chats/${me.p}/${cur}`),msg);await push(ref(db,`mz_chats/${cur}/${me.p}`),msg);inp.value="";};
 </script>
 </body>
 </html>
