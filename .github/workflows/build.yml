@@ -9,30 +9,17 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Clean old files
-        run: rm -rf src capacitor.config.json package.json index.html manifest.json README.md android www app.gradle gradle
-      - name: Create APK Project
+      - uses: android-actions/setup-android@v3
+      - name: Clean
+        run: rm -rf src capacitor.config.json package.json index.html manifest.json README.md android www app gradle build.gradle settings.gradle gradlew
+      - name: Create Project
         run: |
           mkdir -p app/src/main/java/com/mzapps/app
-          mkdir -p gradle/wrapper
           echo "include ':app'" > settings.gradle
-          cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
-          distributionBase=GRADLE_USER_HOME
-          distributionPath=wrapper/dists
-          distributionUrl=https\://services.gradle.org/distributions/gradle-8.2-bin.zip
-          zipStoreBase=GRADLE_USER_HOME
-          zipStorePath=wrapper/dists
-          EOF
-          cat > gradlew << 'EOF'
-          #!/bin/sh
-          GRADLE_APP_PATH=$(dirname "$0")
-          exec gradle "$@"
-          EOF
-          chmod +x gradlew
           cat > build.gradle << 'EOF'
           buildscript {
             repositories { google(); mavenCentral() }
-            dependencies { classpath 'com.android.tools.build:gradle:8.2.0' }
+            dependencies { classpath 'com.android.tools.build:gradle:8.2.2' }
           }
           allprojects { repositories { google(); mavenCentral() } }
           EOF
@@ -48,6 +35,7 @@ jobs:
               versionCode 1
               versionName "1.0"
             }
+            compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
           }
           EOF
           cat > app/src/main/AndroidManifest.xml << 'EOF'
@@ -58,10 +46,7 @@ jobs:
             <uses-permission android:name="android.permission.WRITE_CONTACTS" />
             <application android:label="MzApps" android:theme="@android:style/Theme.NoTitleBar">
               <activity android:name=".MainActivity" android:exported="true">
-                <intent-filter>
-                  <action android:name="android.intent.action.MAIN" />
-                  <category android:name="android.intent.category.LAUNCHER" />
-                </intent-filter>
+                <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
               </activity>
             </application>
           </manifest>
@@ -85,12 +70,12 @@ jobs:
             }
           }
           EOF
-      - name: Build APK
-        uses: gradle/gradle-build-action@v3
-        with:
-          arguments: :app:assembleDebug
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Build APK Direct
+        run: |
+          gradle wrapper --gradle-version 8.5
+          chmod +x gradlew
+         ./gradlew :app:assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
         with:
           name: MzApps-APK
           path: app/build/outputs/apk/debug/app-debug.apk
