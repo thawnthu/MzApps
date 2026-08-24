@@ -16,60 +16,11 @@ jobs:
         run: |
           mkdir -p app/src/main/java/com/mzapps/app
           echo "include ':app'" > settings.gradle
-          cat > build.gradle << 'EOF'
-          buildscript {
-            repositories { google(); mavenCentral() }
-            dependencies { classpath 'com.android.tools.build:gradle:8.2.2' }
-          }
-          allprojects { repositories { google(); mavenCentral() } }
-          EOF
-          cat > app/build.gradle << 'EOF'
-          plugins { id 'com.android.application' }
-          android {
-            namespace 'com.mzapps.app'
-            compileSdk 34
-            defaultConfig {
-              applicationId "com.mzapps.app"
-              minSdk 23
-              targetSdk 34
-              versionCode 1
-              versionName "1.0"
-            }
-            compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
-          }
-          EOF
-          cat > app/src/main/AndroidManifest.xml << 'EOF'
-          <?xml version="1.0" encoding="utf-8"?>
-          <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-            <uses-permission android:name="android.permission.INTERNET" />
-            <uses-permission android:name="android.permission.READ_CONTACTS" />
-            <uses-permission android:name="android.permission.WRITE_CONTACTS" />
-            <application android:label="MzApps" android:theme="@android:style/Theme.NoTitleBar">
-              <activity android:name=".MainActivity" android:exported="true">
-                <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
-              </activity>
-            </application>
-          </manifest>
-          EOF
-          cat > app/src/main/java/com/mzapps/app/MainActivity.java << 'EOF'
-          package com.mzapps.app;
-          import android.app.Activity; import android.os.Bundle; import android.webkit.WebView; import android.webkit.WebViewClient; import android.Manifest; import android.content.pm.PackageManager; import androidx.core.app.ActivityCompat;
-          public class MainActivity extends Activity {
-            WebView wv;
-            protected void onCreate(Bundle b){
-              super.onCreate(b);
-              wv=new WebView(this);
-              wv.getSettings().setJavaScriptEnabled(true);
-              wv.getSettings().setDomStorageEnabled(true);
-              wv.setWebViewClient(new WebViewClient());
-              setContentView(wv);
-              wv.loadUrl("https://mz-apps.vercel.app");
-              if(checkSelfPermission(Manifest.permission.READ_CONTACTS)!=PackageManager.PERMISSION_GRANTED){
-                ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_CONTACTS,Manifest.permission.WRITE_CONTACTS},1);
-              }
-            }
-          }
-          EOF
+          echo "buildscript { repositories { google(); mavenCentral() } dependencies { classpath 'com.android.tools.build:gradle:8.2.2' } } allprojects { repositories { google(); mavenCentral() } }" > build.gradle
+          echo "plugins { id 'com.android.application' } android { namespace 'com.mzapps.app'; compileSdk 34; defaultConfig { applicationId 'com.mzapps.app'; minSdk 23; targetSdk 34; versionCode 1; versionName '1.0' } }" > app/build.gradle
+          mkdir -p app/src/main
+          printf '<manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/><uses-permission android:name="android.permission.READ_CONTACTS"/><uses-permission android:name="android.permission.WRITE_CONTACTS"/><application android:label="MzApps" android:theme="@android:style/Theme.NoTitleBar"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml
+          printf 'package com.mzapps.app; import android.app.Activity; import android.os.Bundle; import android.webkit.WebView; import android.webkit.WebViewClient; import android.Manifest; import android.content.pm.PackageManager; import androidx.core.app.ActivityCompat; public class MainActivity extends Activity { WebView wv; protected void onCreate(Bundle b){ super.onCreate(b); wv=new WebView(this); wv.getSettings().setJavaScriptEnabled(true); wv.getSettings().setDomStorageEnabled(true); wv.setWebViewClient(new WebViewClient()); setContentView(wv); wv.loadUrl("https://mz-apps.vercel.app"); if(checkSelfPermission(Manifest.permission.READ_CONTACTS)!=PackageManager.PERMISSION_GRANTED) ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.READ_CONTACTS,Manifest.permission.WRITE_CONTACTS},1); } }' > app/src/main/java/com/mzapps/app/MainActivity.java
       - name: Build APK Direct
         run: |
           gradle wrapper --gradle-version 8.5
