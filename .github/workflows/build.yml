@@ -1,4 +1,4 @@
-name: Build MzApps FINAL NOTIFICATION
+name: Build MzApps FINAL FIXED
 on: [push]
 jobs:
   build:
@@ -9,7 +9,7 @@ jobs:
         with: {node-version: 18}
       - uses: actions/setup-java@v4
         with: {distribution: temurin, java-version: 17}
-      - name: Build With Firebase Notification
+      - name: Build FIXED SDK 23
         run: |
           rm -rf node_modules android www
           npm install --legacy-peer-deps
@@ -17,15 +17,16 @@ jobs:
           mkdir -p www
           cp index.html www/ || echo "no index"
           cp chat.html www/ || echo "no chat"
-          cp google-services.json www/ || true
           echo "{\"appId\":\"com.mzapps.app\",\"appName\":\"MzApps\",\"webDir\":\"www\",\"server\":{\"cleartext\":true},\"plugins\":{\"PushNotifications\":{\"presentationOptions\":[\"badge\",\"sound\",\"alert\"]}}}" > capacitor.config.json
           npx cap add android
+          # FIX MIN SDK 22 -> 23
+          sed -i "s/minSdkVersion = 22/minSdkVersion = 23/g" android/variables.gradle || true
+          sed -i "s/minSdkVersion 22/minSdkVersion 23/g" android/app/build.gradle || true
+          sed -i "s/minSdk 22/minSdk 23/g" android/app/build.gradle || true
           npx cap copy
           cp google-services.json android/app/google-services.json
-          # Add permissions
-          sed -i 's/<\/manifest>/<uses-permission android:name="android.permission.READ_CONTACTS" \/>\n<uses-permission android:name="android.permission.POST_NOTIFICATIONS" \/>\n<\/manifest>/' android/app/src/main/AndroidManifest.xml || true
           cd android && chmod +x gradlew &&./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: MzApps-FINAL-NOTIFICATION-APK
+          name: MzApps-FIXED-NOTIFICATION-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
