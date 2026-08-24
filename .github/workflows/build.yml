@@ -5,15 +5,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: android-actions/setup-android@v3
       - name: Build APK
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y openjdk-17-jdk gradle
           rm -rf app gradle build.gradle settings.gradle gradlew
           mkdir -p app/src/main/java/com/mzapps/app
           echo "pluginManagement{repositories{google();mavenCentral();gradlePluginPortal()}};include ':app'" > settings.gradle
           echo "//empty" > build.gradle
-          echo "plugins{id 'com.android.application'};android{namespace 'com.mzapps.app';compileSdk 34;defaultConfig{applicationId 'com.mzapps.app';minSdk 23;targetSdk 34};buildTypes{debug{}};compileOptions{sourceCompatibility JavaVersion.VERSION_17;targetCompatibility JavaVersion.VERSION_17}};dependencies{}" > app/build.gradle
+          echo "plugins{id 'com.android.application' version '8.2.2' apply true};android{namespace 'com.mzapps.app';compileSdk 34;defaultConfig{applicationId 'com.mzapps.app';minSdk 23;targetSdk 34};buildTypes{debug{}};compileOptions{sourceCompatibility JavaVersion.VERSION_17;targetCompatibility JavaVersion.VERSION_17}};dependencies{}" > app/build.gradle
           mkdir -p app/src/main
           echo '<manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/><application android:label="MzApps"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml
           echo 'package com.mzapps.app; import android.app.Activity; import android.os.Bundle; import android.webkit.WebView; import android.webkit.WebViewClient; public class MainActivity extends Activity { public void onCreate(Bundle b){super.onCreate(b); WebView w=new WebView(this); w.getSettings().setJavaScriptEnabled(true); w.setWebViewClient(new WebViewClient()); setContentView(w); w.loadUrl("https://mz-apps.vercel.app");}}' > app/src/main/java/com/mzapps/app/MainActivity.java
