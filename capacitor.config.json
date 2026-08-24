@@ -1,9 +1,5 @@
 {
   "appId": "com.thawnthu.mzapps",
   "appName": "MzApps",
-  "webDir": "www",
-  "server": {
-    "url": "https://thawnthu.github.io/MzApps/app.html",
-    "cleartext": true
-  }
+  "webDir": "www"
 }
