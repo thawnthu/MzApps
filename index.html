@@ -1,14 +1,40 @@
-<script src="capacitor.js"></script>
-<script>
-async function loadMzAppsContacts(){
-  try{
-    const { Contacts } = Capacitor.Plugins;
-    await Contacts.requestPermissions();
-    const res = await Contacts.getContacts({projection:{name:true, phones:true}});
-    let real = res.contacts.filter(c=>c.name).map(c=>({name:c.name.display, phone:c.phones?.[0]?.number||''}));
-    localStorage.setItem('mzcontacts', JSON.stringify(real));
-    location.reload();
-  }catch(e){ alert("Phalna pe rawh: Settings > MzApps > Contacts Allow"); }
-}
-if(window.Capacitor) loadMzAppsContacts();
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{font-family:sans-serif;margin:0;background:#0b141a;color:white}
+.header{background:#202c33;padding:15px;font-size:20px;font-weight:bold}
+.contact{padding:12px 15px;border-bottom:1px solid #222d34;display:flex;align-items:center}
+.avatar{width:40px;height:40px;background:#00a884;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:12px;font-weight:bold}
+.btn{background:#00a884;color:white;border:none;padding:15px;width:90%;margin:10px 5%;border-radius:10px;font-size:16px}
+</style>
+</head>
+<body>
+<div class="header">MzApps - WhatsApp Style</div>
+<button class="btn" onclick="loadContacts()">📞 Contact Load Leh</button>
+<div id="list"><p style="padding:20px;text-align:center">Loading contacts...</p></div>
+
+<script type="module">
+import { CapacitorContacts } from "https://cdn.jsdelivr.net/npm/@capacitor-community/contacts@5.0.3/dist/esm/index.js";
+window.loadContacts = async () => {
+ try{
+  const Contacts = window.Capacitor?.Plugins?.Contacts || CapacitorContacts;
+  await Contacts.requestPermissions();
+  const r = await Contacts.getContacts({projection:{name:true,phones:true}});
+  const div = document.getElementById('list');
+  if(!r.contacts.length){div.innerHTML="<p style='padding:20px'>Contact hmuh tur a awm lo</p>";return;}
+  div.innerHTML = r.contacts.filter(c=>c.name).map(c=>`
+    <div class="contact">
+      <div class="avatar">${(c.name.display||'?')[0]}</div>
+      <div><b>${c.name.display}</b><br><small style="color:#8696a0">${c.phones?.[0]?.number||''}</small></div>
+    </div>`).join('');
+ }catch(e){
+  document.getElementById('list').innerHTML = `<p style="padding:20px;color:tomato">Error: ${e.message}<br><br>Settings > Apps > MzApps > Permissions > Contacts > Allow tih rawh!</p>`;
+ }
+};
+setTimeout(loadContacts,800);
 </script>
+<script src="capacitor.js"></script>
+</body>
+</html>
