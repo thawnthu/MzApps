@@ -1,0 +1,6 @@
+{
+  "appId": "com.mzapps.app",
+  "appName": "MzApps",
+  "webDir": "www",
+  "server": { "url": "https://mz-apps.vercel.app", "cleartext": true }
+}
