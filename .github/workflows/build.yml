@@ -5,20 +5,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
+      - name: Install Java
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y openjdk-17-jdk
+          java -version
       - name: Make APK
         run: |
-          rm -rf app gradle build.gradle settings.gradle gradlew
+          rm -rf app gradle build.gradle settings.gradle gradlew src
           mkdir -p app/src/main/java/com/mzapps/app
-          echo include ':app' > settings.gradle
-          echo buildscript{repositories{google();mavenCentral()}dependencies{classpath 'com.android.tools.build:gradle:8.2.2'}}allprojects{repositories{google();mavenCentral()}} > build.gradle
-          echo plugins{id 'com.android.application'}android{namespace 'com.mzapps.app';compileSdk 34;defaultConfig{applicationId 'com.mzapps.app';minSdk 23;targetSdk 34}} > app/build.gradle
+          echo "include ':app'" > settings.gradle
+          echo "buildscript{repositories{google();mavenCentral()}dependencies{classpath 'com.android.tools.build:gradle:8.2.2'}}allprojects{repositories{google();mavenCentral()}}" > build.gradle
+          echo "plugins{id 'com.android.application'}android{namespace 'com.mzapps.app';compileSdk 34;defaultConfig{applicationId 'com.mzapps.app';minSdk 23;targetSdk 34}}" > app/build.gradle
           mkdir -p app/src/main
-          printf '<manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/><application android:label="MzApps" android:theme="@android:style/Theme.NoTitleBar"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml
-          printf 'package com.mzapps.app; import android.app.Activity; import android.os.Bundle; import android.webkit.WebView; import android.webkit.WebViewClient; public class MainActivity extends Activity { public void onCreate(Bundle b){super.onCreate(b); WebView w=new WebView(this); w.getSettings().setJavaScriptEnabled(true); w.setWebViewClient(new WebViewClient()); setContentView(w); w.loadUrl("https://mz-apps.vercel.app");}}' > app/src/main/java/com/mzapps/app/MainActivity.java
+          echo '<manifest xmlns:android="http://schemas.android.com/apk/res/android"><uses-permission android:name="android.permission.INTERNET"/><application android:label="MzApps"><activity android:name=".MainActivity" android:exported="true"><intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter></activity></application></manifest>' > app/src/main/AndroidManifest.xml
+          echo 'package com.mzapps.app; import android.app.Activity; import android.os.Bundle; import android.webkit.WebView; import android.webkit.WebViewClient; public class MainActivity extends Activity { public void onCreate(Bundle b){super.onCreate(b); WebView w=new WebView(this); w.getSettings().setJavaScriptEnabled(true); w.setWebViewClient(new WebViewClient()); setContentView(w); w.loadUrl("https://mz-apps.vercel.app");}}' > app/src/main/java/com/mzapps/app/MainActivity.java
           gradle wrapper --gradle-version 8.5
           chmod +x gradlew
          ./gradlew :app:assembleDebug --no-daemon
