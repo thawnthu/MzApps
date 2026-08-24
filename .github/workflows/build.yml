@@ -12,13 +12,9 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-      - name: Build
-        run: |
-          npm install
-          npx cap copy android || true
-          cd android
-          chmod +x gradlew
-         ./gradlew assembleDebug
+      - run: npm install
+      - run: npx cap copy android
+      - run: cd android && chmod +x gradlew &&./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
         with:
           name: MzApps-APK
