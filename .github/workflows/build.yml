@@ -1,4 +1,4 @@
-name: Build MzApps ULTIMATE FINAL
+name: Build MzApps CHAT-INVITE WORKING
 on: [push]
 jobs:
   build:
@@ -8,26 +8,23 @@ jobs:
       - uses: actions/setup-node@v4
         with: {node-version: 18}
       - uses: actions/setup-java@v4
-        with: {distribution: temurin, java-version: 21}
-      - name: Build ULTIMATE
+        with: {distribution: temurin, java-version: 17}
+      - name: Build CHAT INVITE
         run: |
           rm -rf node_modules android www
           npm install --legacy-peer-deps
-          npm install @capacitor-community/contacts @capacitor/push-notifications --legacy-peer-deps
+          npm install @capacitor-community/contacts --legacy-peer-deps
+          npm install @capacitor/android @capacitor/core --legacy-peer-deps
           mkdir -p www
-          cp index.html www/ || echo '<h1>MzApps</h1>' > www/index.html
-          cp chat.html www/ 2>/dev/null || true
+          cp index.html www/
+          cp chat.html www/ 2>/dev/null || echo "chat" > www/chat.html
           echo "{\"appId\":\"com.mzapps.app\",\"appName\":\"MzApps\",\"webDir\":\"www\"}" > capacitor.config.json
           npx cap add android
-          # FIX 1: minSdk 23
-          sed -i "s/minSdkVersion = 22/minSdkVersion = 23/g" android/variables.gradle
-          # FIX 2: Gradle 8.0.2 -> 8.10.2 (Java 21 support)
-          sed -i "s/gradle-8.0.2-all.zip/gradle-8.10.2-all.zip/g" android/gradle/wrapper/gradle-wrapper.properties
-          sed -i "s/gradle-8.0-all.zip/gradle-8.10.2-all.zip/g" android/gradle/wrapper/gradle-wrapper.properties || true
+          sed -i "s/minSdkVersion = 22/minSdkVersion = 23/g" android/variables.gradle || true
           npx cap copy
-          cp google-services.json android/app/google-services.json
+          cp google-services.json android/app/google-services.json || true
           cd android && chmod +x gradlew &&./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: MzApps-FINAL-WORKING-APK
+          name: MzApps-CHAT-INVITE-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
