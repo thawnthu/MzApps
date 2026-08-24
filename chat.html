@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{margin:0;font-family:sans-serif;background:#0b141a;color:white;display:flex;flex-direction:column;height:100vh}.header{background:#202c33;padding:12px;display:flex;align-items:center}.avatar{width:36px;height:36px;background:#00a884;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:10px;font-weight:bold}.chat{flex:1;padding:15px;overflow-y:auto;background:#0b141a url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');background-size:300px}.msg{background:#005c4b;padding:8px 12px;border-radius:8px;margin:5px 0;max-width:70%;margin-left:auto}.msg.other{background:#202c33;margin-left:0;margin-right:auto}.input-area{display:flex;padding:8px;background:#202c33}.input-area input{flex:1;padding:12px;border-radius:20px;border:none;background:#2a3942;color:white}.input-area button{background:#00a884;border:none;color:white;padding:0 20px;border-radius:50%;margin-left:8px;font-size:20px}</style>
+</head><body>
+<div class="header"><span onclick="history.back()" style="margin-right:15px;font-size:22px">←</span><div class="avatar" id="av">P</div><div><b id="name">Chat</b><br><small id="phone" style="color:#8696a0"></small></div></div>
+<div class="chat" id="chat"><div class="msg other">Hey! MzApps ah i lo lut ta! 👋</div></div>
+<div class="input-area"><input id="txt" placeholder="Message" onkeypress="if(event.key=='Enter')send()"><button onclick="send()">➤</button></div>
+<script>
+const name=localStorage.getItem('chat_name')||'Chat'; const phone=localStorage.getItem('chat_phone')||'';
+document.getElementById('name').innerText=name; document.getElementById('phone').innerText=phone; document.getElementById('av').innerText=name[0].toUpperCase();
+function send(){ const t=document.getElementById('txt'); if(!t.value.trim())return; const c=document.getElementById('chat'); c.innerHTML+=`<div class="msg">${t.value}</div>`; t.value=''; c.scrollTop=c.scrollHeight; setTimeout(()=>{c.innerHTML+=`<div class="msg other">Seen ✓ (Demo chauh a la ni)</div>`; c.scrollTop=c.scrollHeight;},1000); }
+</script></body></html>
