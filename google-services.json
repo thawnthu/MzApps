@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "580550703112",
+    "firebase_url": "https://thawnthu-e3b68-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "thawnthu-e3b68",
+    "storage_bucket": "thawnthu-e3b68.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:580550703112:android:4dff3d2eba28b07a0ff9bd",
+        "android_client_info": {
+          "package_name": "com.mzapps.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAgbNKHdODT72vFtadhvPUT7HhYn-nuOgU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
