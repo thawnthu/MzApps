@@ -2,8 +2,5 @@
   "appId": "com.thawnthu.mzapps",
   "appName": "MzApps",
   "webDir": "www",
-  "server": {
-    "url": "https://thawnthu.github.io/MzApps",
-    "cleartext": true
-  }
+  "bundledWebRuntime": false
 }
