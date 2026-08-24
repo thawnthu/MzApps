@@ -2,169 +2,102 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MzApps</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#008069">
-<link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/733/733585.png">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;color:#111b21;font-family:system-ui;height:100dvh;overflow:hidden}
-.screen{height:100dvh;display:flex;flex-direction:column;padding:24px;justify-content:center;align-items:center;background:#fff}
+*{margin:0;padding:0;box-sizing:border-box}body{background:#fff;font-family:system-ui;height:100dvh;overflow:hidden}
+.screen{height:100dvh;display:flex;flex-direction:column;padding:24px;justify-content:center;align-items:center}
 #s2,#s3,#main,#contacts,#chatPage{display:none}
-h1{color:#008069;font-size:22px;font-weight:400;text-align:center} .sub{color:#667781;font-size:14px;text-align:center;margin:10px 0 20px;line-height:1.3}
+h1{color:#008069;font-size:22px;font-weight:400;text-align:center}.sub{color:#667781;font-size:14px;text-align:center;margin:10px 0 20px}
 .rowIn{display:flex;gap:8px;width:100%;max-width:320px;border-bottom:2px solid #008069;padding:10px 0;margin-bottom:16px}
-.rowIn select,.rowIn input{border:none;outline:none;font-size:16px;flex:1;background:#fff}
-.btn{padding:12px 36px;border-radius:24px;border:none;background:#008069;color:#fff;font-weight:700;font-size:14px;cursor:pointer}
-.otp{display:flex;gap:6px;margin:16px}.otp input{width:38px;height:44px;text-align:center;border:none;border-bottom:2px solid #008069;outline:none;font-size:18px}
+.rowIn input,.rowIn select{border:none;outline:none;font-size:16px;flex:1;background:#fff}
+.btn{padding:12px 36px;border-radius:24px;border:none;background:#008069;color:#fff;font-weight:700;cursor:pointer}
+.otp{display:flex;gap:6px}.otp input{width:36px;height:42px;text-align:center;border:none;border-bottom:2px solid #008069;outline:none;font-size:18px}
 .top{background:#008069;color:#fff;padding:12px 14px;display:flex;gap:10px;align-items:center;font-weight:700}
-.list{flex:1;overflow-y:auto}.row{padding:12px 14px;display:flex;gap:12px;align-items:center;border-bottom:1px solid #f2f2f2}
+.list{flex:1;overflow-y:auto}.row{padding:12px 14px;display:flex;gap:12px;align-items:center;border-bottom:1px solid #f0f2f5}
 .av{width:42px;height:42px;background:#00a884;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800}
-.fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;background:#008069;border-radius:50%;border:none;color:#fff;font-size:28px;z-index:5;display:grid;place-items:center}
-#main{flex-direction:column;height:100dvh;background:#fff}#contacts,#chatPage{position:fixed;inset:0;background:#fff;z-index:20;flex-direction:column}
+.fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;background:#008069;border-radius:50%;border:none;color:#fff;font-size:28px;display:grid;place-items:center;z-index:5}
+#main{flex-direction:column;height:100dvh}#contacts,#chatPage{position:fixed;inset:0;background:#fff;z-index:20;flex-direction:column}
 #c{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;background:#e5ddd5}
-.m{max-width:75%;padding:7px 10px;border-radius:8px;font-size:14.5px;word-break:break-word}.me{background:#dcf8c6;align-self:flex-end}.ot{background:#fff;align-self:flex-start}
+.m{max-width:75%;padding:7px 10px;border-radius:8px;font-size:14.5px}.me{background:#dcf8c6;align-self:flex-end}.ot{background:#fff;align-self:flex-start}
 .b{padding:8px;background:#f0f2f5;display:flex;gap:8px}.b input{flex:1;padding:11px 14px;border-radius:22px;border:none;outline:none}
 </style>
 </head>
 <body>
 
-<!-- STEP 1: PHONE -->
-<div id="s1" class="screen">
-<h1>Phone number chhu lut rawh</h1><p class="sub">MzApps hian i number a verify ang</p>
-<div class="rowIn"><select id="cc"><option>+91</option><option>+95</option></select><input id="p" type="tel" placeholder="7005697815" value="7005697815"></div>
-<button class="btn" onclick="goNext()">NEXT</button>
-<button onclick="clearData()" style="margin-top:12px;background:none;border:none;color:#e44;font-size:11px">Clear / Logout</button>
-</div>
+<div id="s1" class="screen"><h1>Phone number</h1><p class="sub">MzApps verify ang</p><div class="rowIn"><select><option>+91</option></select><input id="p" value="7005697815"></div><button class="btn" onclick="goNext()">NEXT</button><button onclick="localStorage.clear();location.reload()" style="margin-top:10px;background:none;border:none;color:red;font-size:11px">Clear</button></div>
+<div id="s2" class="screen"><h1>Code: <b id="otpShow">123456</b></h1><div class="otp"><input id="o1"><input id="o2"><input id="o3"><input id="o4"><input id="o5"><input id="o6"></div><button class="btn" onclick="goVerify()">VERIFY</button></div>
+<div id="s3" class="screen"><h1>Profile</h1><input id="n" placeholder="I hming" style="padding:12px;border:none;border-bottom:2px solid #008069;outline:none;text-align:center;font-size:18px;width:100%;max-width:280px;margin:20px 0"><button class="btn" onclick="goProfile()">DONE</button></div>
 
-<!-- STEP 2: OTP -->
-<div id="s2" class="screen">
-<h1>Verify <span id="showP"></span></h1><p class="sub">SMS code: <b id="otpShow" style="color:#008069;font-size:20px">123456</b> (auto fill)</p>
-<div class="otp"><input id="o1"><input id="o2"><input id="o3"><input id="o4"><input id="o5"><input id="o6"></div>
-<button class="btn" onclick="goVerify()">VERIFY</button>
-<button onclick="back1()" style="margin-top:10px;background:none;border:none;color:#008069">Edit number</button>
-</div>
+<div id="main"><div class="top">MzApps - <span id="uname" style="font-size:12px;margin-left:auto"></span></div><div id="chatList" class="list"><div style="padding:60px;text-align:center;color:#667781">Chat a la awm lo<br>+ hmeh rawh</div></div><button class="fab" onclick="openContacts()">+</button></div>
 
-<!-- STEP 3: PROFILE -->
-<div id="s3" class="screen">
-<h1>Profile info</h1><p class="sub">Hming chhu rawh</p>
-<input id="n" placeholder="I hming" style="padding:12px;border:none;border-bottom:2px solid #008069;outline:none;text-align:center;font-size:18px;width:100%;max-width:280px;margin-bottom:20px">
-<button class="btn" onclick="goProfile()">NEXT</button>
-</div>
+<div id="contacts"><div class="top"><span onclick="closeContacts()" style="font-size:22px">←</span> Contacts</div><div style="padding:8px;background:#f9f9f9;display:flex;gap:6px"><button onclick="clearSavedContacts()" style="padding:8px 12px;border:none;background:#eee;border-radius:8px;font-size:12px">🔄 Refresh Contacts</button><span style="font-size:11px;color:#667781;margin-left:auto">Vawi 1 Allow pek chuan auto lang tawh</span></div><div id="contactList" class="list"></div></div>
 
-<!-- MAIN: CHAT LIST - A RUAK A TIR AH -->
-<div id="main">
-<div class="top"><span>MzApps</span><span id="uname" style="font-size:12px;opacity:.9;margin-left:auto"></span></div>
-<div id="chatList" class="list"><div style="padding:60px 20px;text-align:center;color:#667781">Chat a la awm lo<br><small style="font-size:12px">+ hmeh in tan rawh</small></div></div>
-<button class="fab" onclick="openContacts()">+</button>
-</div>
-
-<!-- CONTACTS PAGE - + HMEH IN -->
-<div id="contacts">
-<div class="top"><span onclick="closeContacts()" style="font-size:22px;cursor:pointer">←</span> Contacts</div>
-<div style="padding:10px;display:flex;flex-direction:column;gap:8px;background:#f9f9f9">
-<button onclick="importPhone()" style="padding:12px;border-radius:8px;border:none;background:#e7fce3;color:#008069;font-weight:700">📱 Ka Phone Contact Import</button>
-<div style="display:flex;gap:6px"><input id="newP" placeholder="Phone" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:8px"><input id="newN" placeholder="Hming" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:8px"><button onclick="addManual()" style="padding:10px 14px;background:#008069;color:#fff;border:none;border-radius:8px">Add</button></div>
-<button onclick="addDemo()" style="padding:8px;border:none;background:none;color:#008069;font-size:12px">+ Demo user (Amawii, Zuala) add</button>
-</div>
-<div id="contactList" class="list"></div>
-</div>
-
-<!-- CHAT PAGE -->
-<div id="chatPage">
-<div class="top"><span onclick="closeChat()" style="font-size:22px">←</span> <span id="chatName"></span></div>
-<div id="c"></div>
-<div class="b"><input id="i" placeholder="Message"><button onclick="sendMsg()" style="background:#008069;border:none;width:42px;height:42px;border-radius:50%;color:#fff">➤</button></div>
-</div>
+<div id="chatPage"><div class="top"><span onclick="closeChat()" style="font-size:22px">←</span> <span id="chatName"></span></div><div id="c"></div><div class="b"><input id="i" placeholder="Message"><button onclick="sendMsg()" style="background:#008069;border:none;width:42px;height:42px;border-radius:50%;color:#fff">➤</button></div></div>
 
 <script>
-// === NO MODULE - 100% WORKING ===
 let fake="123456", curP="", me=null, curChat=null;
 try{firebase.initializeApp({databaseURL:"https://thawnthu-e3b68-default-rtdb.asia-southeast1.firebasedatabase.app"});}catch{}
 let db=firebase.database();
 
-// PWA install
-if('serviceWorker' in navigator){navigator.serviceWorker.register('data:text/javascript,self.addEventListener("fetch",e=>e.respondWith(fetch(e.request)))');}
+function goNext(){curP=document.getElementById("p").value.trim();if(curP.length<5){alert("Phone!");return;}fake=Math.floor(100000+Math.random()*900000)+"";document.getElementById("otpShow").innerText=fake;document.getElementById("s1").style.display="none";document.getElementById("s2").style.display="flex";setTimeout(()=>{for(let i=1;i<=6;i++)document.getElementById("o"+i).value=fake[i-1];},300);}
+function goVerify(){let code=[1,2,3,4,5,6].map(i=>document.getElementById("o"+i).value).join("");if(code!==fake){alert("Code: "+fake);return;}document.getElementById("s2").style.display="none";document.getElementById("s3").style.display="flex";}
+function goProfile(){let n=document.getElementById("n").value.trim();if(n.length<2){alert("Hming!");return;}me={p:curP,n:n};localStorage.setItem("mz_super",JSON.stringify(me));db.ref("mz_users/"+curP).set({p:curP,n:n});showMain();}
+function showMain(){document.getElementById("s1").style.display="none";document.getElementById("s2").style.display="none";document.getElementById("s3").style.display="none";document.getElementById("main").style.display="flex";let s=JSON.parse(localStorage.getItem("mz_super")||"{}");me=s;curP=s.p;document.getElementById("uname").innerText=s.n;loadChatList();}
+function loadChatList(){if(!me)return;db.ref("mz_chats/"+me.p).on("value",snap=>{let list=document.getElementById("chatList");let data=snap.val();if(!data){list.innerHTML="<div style='padding:60px;text-align:center;color:#667781'>Chat a la awm lo<br><small>+ hmeh rawh</small></div>";return;}list.innerHTML="";Object.entries(data).forEach(([ph,msgs])=>{let last=Object.values(msgs).pop();let d=document.createElement("div");d.className="row";d.innerHTML=`<div class=av>${last.n[0]}</div><div><b>${last.n}</b><div style='font-size:12px;color:#667781'>${last.m.slice(0,30)}</div></div>`;d.onclick=()=>openChat(ph,last.n);list.appendChild(d);});});}
 
-function goNext(){
- curP=document.getElementById("p").value.trim();
- if(curP.length<5){alert("Phone!");return;}
- fake=Math.floor(100000+Math.random()*900000)+"";
- document.getElementById("showP").innerText="+91 "+curP;
- document.getElementById("otpShow").innerText=fake;
- document.getElementById("s1").style.display="none";
- document.getElementById("s2").style.display="flex";
- setTimeout(()=>{for(let i=1;i<=6;i++)document.getElementById("o"+i).value=fake[i-1];},400);
+// === CONTACTS AUTO LOGIC - Vawi 1 chiah Import ngai ===
+async function openContacts(){
+  document.getElementById("contacts").style.display="flex";
+  let cl=document.getElementById("contactList");
+  let saved = JSON.parse(localStorage.getItem("myPhoneContacts")||"null");
+  if(saved && saved.length>0){
+    showContacts(saved);
+  } else {
+    cl.innerHTML="<div style='padding:20px;text-align:center'>📱 Phone contact lak mek...<br><small>Allow hmet rawh</small></div>";
+    try{
+      if(!navigator.contacts){cl.innerHTML="<div style='padding:20px;text-align:center'>Chrome ah support lo<br>Manual add a ngai<br><br><button onclick='addDemo()' style='padding:10px 20px;background:#008069;color:#fff;border:none;border-radius:20px'>Demo Add</button></div>";return;}
+      let cs = await navigator.contacts.select(["name","tel"],{multiple:true});
+      let simple = cs.map(c=>({name:c.name[0], tel:c.tel[0]}));
+      localStorage.setItem("myPhoneContacts", JSON.stringify(simple));
+      showContacts(simple);
+    }catch(e){cl.innerHTML=`<div style='padding:20px;text-align:center'>Cancel<br><button onclick='openContacts()' style='padding:10px 20px;background:#008069;color:#fff;border:none;border-radius:20px;margin-top:10px'>Try leh</button></div>`;}
+  }
 }
-function back1(){document.getElementById("s2").style.display="none";document.getElementById("s1").style.display="flex";}
-function goVerify(){
- let code=[1,2,3,4,5,6].map(i=>document.getElementById("o"+i).value).join("");
- if(code!==fake){alert("Code dik lo, code chu: "+fake);return;}
- document.getElementById("s2").style.display="none";
- document.getElementById("s3").style.display="flex";
+function showContacts(list){
+  let cl=document.getElementById("contactList");
+  cl.innerHTML=`<div style='padding:8px;color:#008069;font-size:12px'>📱 I contact ${list.length} - Auto saved tawh</div>`;
+  db.ref("mz_users").once("value").then(snap=>{
+    let users = Object.values(snap.val()||{});
+    if(users.length<=1 && list.length==0){cl.innerHTML+="<div style='padding:20px;text-align:center;color:#667781'>MzApps hmangtu an la awm lo</div>";}
+    // MzApps users first
+    users.forEach(u=>{if(u.p==me.p)return;let div=document.createElement("div");div.className="row";div.innerHTML=`<div class=av>${u.n[0]}</div><div style='flex:1'><b>${u.n}</b><div style='font-size:12px;color:#008069'>${u.p} • MzApps</div></div><button style='padding:6px 12px;background:#008069;color:#fff;border:none;border-radius:20px'>Chat</button>`;div.onclick=()=>openChat(u.p,u.n);cl.appendChild(div);});
+    // Phone contacts
+    list.forEach(c=>{
+      let ph = c.tel.replace(/[^0-9]/g,"").slice(-10);
+      let exists = users.find(u=>u.p.slice(-10)==ph);
+      if(exists)return; // already shown as MzApps user
+      let div=document.createElement("div");div.className="row";div.innerHTML=`<div class=av style='background:#ccc;color:#000'>${c.name[0]}</div><div style='flex:1'><b>${c.name}</b><div style='font-size:12px;color:#667781'>${c.tel} • hmang lo</div></div><button style='padding:6px 12px;border:1px solid #008069;color:#008069;background:none;border-radius:20px'>Invite</button>`;
+      div.querySelector("button").onclick=()=>{if(navigator.share)navigator.share({title:"MzApps",text:"MzApps lo hmang ve rawh",url:location.href});else alert(location.href);};
+      cl.appendChild(div);
+    });
+  });
 }
-function goProfile(){
- let n=document.getElementById("n").value.trim();
- if(n.length<2){alert("Hming chhu rawh!");return;}
- me={p:curP,n:n};localStorage.setItem("mz_super",JSON.stringify(me));
- db.ref("mz_users/"+curP).set({p:curP,n:n,time:Date.now()});
- showMain();
-}
-function showMain(){
- document.getElementById("s1").style.display="none";document.getElementById("s2").style.display="none";document.getElementById("s3").style.display="none";
- document.getElementById("main").style.display="flex";
- let saved=JSON.parse(localStorage.getItem("mz_super")||"{}");
- me=saved;curP=saved.p;
- document.getElementById("uname").innerText=saved.n||saved.p;
- loadChatList();
-}
-function loadChatList(){
- if(!me)return;
- db.ref("mz_chats/"+me.p).on("value",snap=>{
-   let list=document.getElementById("chatList");let data=snap.val();
-   if(!data){list.innerHTML="<div style='padding:60px 20px;text-align:center;color:#667781'>Chat a la awm lo<br><small>+ hmeh in tan rawh</small></div>";return;}
-   list.innerHTML="";Object.entries(data).forEach(([ph,msgs])=>{
-     let last=Object.values(msgs).pop();
-     let d=document.createElement("div");d.className="row";d.innerHTML=`<div class=av>${last.n[0]}</div><div><b>${last.n}</b><div style='font-size:12px;color:#667781'>${last.m.slice(0,30)}</div></div>`;
-     d.onclick=()=>openChat(ph,last.n);list.appendChild(d);
-   });
- });
-}
-function openContacts(){document.getElementById("contacts").style.display="flex";loadContacts();}
+function clearSavedContacts(){localStorage.removeItem("myPhoneContacts");openContacts();}
 function closeContacts(){document.getElementById("contacts").style.display="none";}
-function loadContacts(){
- let cl=document.getElementById("contactList");cl.innerHTML="Loading...";
- db.ref("mz_users").once("value").then(snap=>{
-   let users=Object.values(snap.val()||{});cl.innerHTML="";
-   if(users.length<=1){cl.innerHTML=`<div style='padding:30px;text-align:center;color:#667781'>MzApps hmangtu an la awm lo<br><br>Demo add la test rawh<br>Invite: ${location.host}</div>`;return;}
-   users.forEach(u=>{if(u.p==me.p)return;let d=document.createElement("div");d.className="row";d.innerHTML=`<div class=av>${u.n[0]}</div><div style='flex:1'><b>${u.n}</b><div style='font-size:12px;color:#667781'>${u.p} • MzApps hmang</div></div><button style='padding:6px 12px;background:#008069;color:#fff;border:none;border-radius:20px'>Chat</button>`;d.onclick=()=>openChat(u.p,u.n);cl.appendChild(d);});
- });
-}
-function addDemo(){db.ref("mz_users/9862000001").set({p:"9862000001",n:"Amawii"});db.ref("mz_users/9862000002").set({p:"9862000002",n:"Zuala"});alert("Demo add fel!");loadContacts();}
-function addManual(){let p=document.getElementById("newP").value.trim(),n=document.getElementById("newN").value.trim();if(!p||!n){alert("Phone leh Hming!");return;}db.ref("mz_users/"+p).set({p:p,n:n});alert("Add fel!");loadContacts();}
-async function importPhone(){
- try{
-  if(!navigator.contacts || !window.ContactsManager){alert("He Chrome hian a support lo. Manual add hmang rawh.");return;}
-  let cs=await navigator.contacts.select(["name","tel"],{multiple:true});
-  let cl=document.getElementById("contactList");cl.innerHTML="";
-  cs.forEach(c=>{let d=document.createElement("div");d.className="row";d.innerHTML=`<div class=av>${c.name[0][0]}</div><div style='flex:1'><b>${c.name[0]}</b><div style='font-size:12px'>${c.tel[0]}</div></div><button style='padding:6px 12px;border:1px solid #008069;color:#008069;background:none;border-radius:20px' onclick="alert('Invite link: ${location.href}')">Invite</button>`;cl.appendChild(d);});
- }catch(e){alert("Cancel: "+e);}
-}
-function openChat(ph,name){
- curChat=ph;document.getElementById("contacts").style.display="none";document.getElementById("chatPage").style.display="flex";document.getElementById("chatName").innerText=name;
- let c=document.getElementById("c");c.innerHTML="";db.ref(`mz_chats/${me.p}/${ph}`).off();db.ref(`mz_chats/${me.p}/${ph}`).on("child_added",s=>{let d=s.val();let div=document.createElement("div");div.className="m "+(d.p==me.p?"me":"ot");div.innerText=d.m;c.appendChild(div);c.scrollTop=c.scrollHeight;});
-}
+function addDemo(){db.ref("mz_users/9862000001").set({p:"9862000001",n:"Amawii"});alert("Demo add fel");}
+
+// CHAT
+function openChat(ph,name){curChat=ph;document.getElementById("contacts").style.display="none";document.getElementById("chatPage").style.display="flex";document.getElementById("chatName").innerText=name;let c=document.getElementById("c");c.innerHTML="";db.ref(`mz_chats/${me.p}/${ph}`).off();db.ref(`mz_chats/${me.p}/${ph}`).on("child_added",s=>{let d=s.val();let div=document.createElement("div");div.className="m "+(d.p==me.p?"me":"ot");div.innerText=d.m;c.appendChild(div);c.scrollTop=c.scrollHeight;});}
 function closeChat(){document.getElementById("chatPage").style.display="none";curChat=null;}
 function sendMsg(){let inp=document.getElementById("i");if(!inp.value.trim()||!curChat)return;let m={p:me.p,n:me.n,m:inp.value};db.ref(`mz_chats/${me.p}/${curChat}`).push(m);db.ref(`mz_chats/${curChat}/${me.p}`).push(m);inp.value="";}
-function clearData(){localStorage.clear();location.reload();}
 
-// auto login
-let saved=localStorage.getItem("mz_super");
-if(saved){try{me=JSON.parse(saved);curP=me.p;document.getElementById("s1").style.display="none";document.getElementById("main").style.display="flex";document.getElementById("uname").innerText=me.n;loadChatList();}catch{}}
-// otp auto jump
-document.querySelectorAll(".otp input").forEach((inp,idx,arr)=>{inp.addEventListener("input",()=>{if(inp.value&&idx<5)arr[idx+1].focus()})});
-document.getElementById("i").addEventListener("keydown",e=>{if(e.key=="Enter")sendMsg()});
+// AUTO LOGIN
+let saved=localStorage.getItem("mz_super");if(saved){try{me=JSON.parse(saved);curP=me.p;document.getElementById("s1").style.display="none";document.getElementById("main").style.display="flex";document.getElementById("uname").innerText=me.n;loadChatList();}catch{}}
 </script>
 </body>
 </html>
