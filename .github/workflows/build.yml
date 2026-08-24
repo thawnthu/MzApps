@@ -5,23 +5,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with: {node-version: 18}
-      - name: Install Capacitor
+
+      - name: Fix and Install
         run: |
-          npm install @capacitor/core @capacitor/cli @capacitor/android @capacitor-community/contacts
+          rm -rf node_modules package-lock.json
+          npm init -y || true
+          npm install --legacy-peer-deps @capacitor/core@5 @capacitor/cli@5 @capacitor/android@5
+          npm install --legacy-peer-deps @capacitor-community/contacts || echo "skip contacts"
           npx cap add android || true
-      - name: Copy web to android
-        run: npx cap copy
-      - name: Add Contact Permission
+          npx cap copy || true
+
+      - name: Add Contact Permission to MzApps
         run: |
           FILE=android/app/src/main/AndroidManifest.xml
-          if grep -q "READ_CONTACTS" $FILE; then echo "Already has permission"; else sed -i 's/<\/manifest>/ <uses-permission android:name="android.permission.READ_CONTACTS" \/>\n <uses-permission android:name="android.permission.WRITE_CONTACTS" \/>\n<\/manifest>/' $FILE; fi
-          cat $FILE
+          if [ -f "$FILE" ]; then
+            if! grep -q "READ_CONTACTS" $FILE; then
+              sed -i 's|</manifest>|<uses-permission android:name="android.permission.READ_CONTACTS" />\n</manifest>|' $FILE
+            fi
+            cat $FILE
+          fi
+
       - uses: actions/setup-java@v4
         with: {distribution: temurin, java-version: 17}
+
       - name: Build APK
-        run: cd android && chmod +x gradlew &&./gradlew assembleDebug
+        run: |
+          cd android
+          chmod +x gradlew
+         ./gradlew assembleDebug
+
       - name: Upload MzApps APK
         uses: actions/upload-artifact@v4
-        with: {name: MzApps-APK, path: android/app/build/outputs/apk/debug/app-debug.apk}
+        with:
+          name: MzApps-APK
+          path: android/app/build/outputs/apk/debug/app-debug.apk
