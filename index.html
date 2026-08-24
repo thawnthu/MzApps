@@ -1,55 +1,81 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MzApps</title>
-<style>body{margin:0;font-family:sans-serif;background:#0b141a;color:white}.header{background:#202c33;padding:15px;font-size:20px;font-weight:bold}.contact{padding:12px 15px;border-bottom:1px solid #1f2c34;display:flex;align-items:center;justify-content:space-between}.avatar{width:42px;height:42px;background:#00a884;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-right:12px;font-weight:bold}.left{display:flex;align-items:center}.btn{border:none;padding:7px 14px;border-radius:20px;font-size:13px;font-weight:bold}.btn-chat{background:#00a884;color:white}.btn-invite{background:#2a3942;color:#00a884}.tabs{display:flex;justify-content:space-around;padding:10px;background:#202c33}.tabs a{color:#00a884;text-decoration:none}</style>
-</head><body>
+<style>
+body{background:#111b21;color:#fff;margin:0;font-family:sans-serif}
+.header{background:#202c33;padding:15px;font-size:20px;font-weight:bold}
+.tabs{display:flex;justify-content:space-around;background:#202c33;color:#00a884;padding:10px}
+.item{display:flex;justify-content:space-between;padding:15px;border-bottom:1px solid #222}
+.btn{padding:6px 14px;border-radius:20px;font-size:12px;border:none;font-weight:bold}
+.chat{background:#00a884;color:#fff}
+.invite{background:#333;color:#ccc}
+</style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
 <div class="header">MzApps - Contact Check</div>
-<div class="tabs"><a href="index.html">Chats</a><a href="status.html">Status</a><a href="calls.html">Calls</a></div>
-<div id="list"><p style="text-align:center;color:#8696a0;padding:30px">Contact check mek...</p></div>
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getDatabase, ref, onValue, set, get, child } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-database.js";
+<div class="tabs"><span>Chats</span><span>Status</span><span>Calls</span></div>
+<div id="list" style="padding-top:20px;text-align:center;color:#8696a0">Contact check mek...</div>
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCYP1ilo17KsJk8mwP5o_I2eEw7pT0dZQk",
-  authDomain: "thawnthu-e3b68.firebaseapp.com",
-  databaseURL: "https://thawnthu-e3b68-default-rtdb.firebaseio.com",
-  projectId: "thawnthu-e3b68",
-  storageBucket: "thawnthu-e3b68.appspot.com",
-  messagingSenderId: "580550703112",
-  appId: "1:580550703112:web:9a67fc09b9150aa20f9bd"
-};
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+<script>
+const firebaseConfig = {apiKey:"AIzaSyBc6P6havWW5Re2V6FBPz3yToQ5i_ihAcw",authDomain:"thawnthu-e3b68.firebaseapp.com",databaseURL:"https://thawnthu-e3b68-default-rtdb.firebaseio.com",projectId:"thawnthu-e3b68"};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
-// Mahni phone number register (Demo - a takah chuan OTP hmang tur)
-let myPhone = localStorage.getItem('myPhone');
-if(!myPhone){ myPhone = prompt("I phone number (last 10 digit) dah rawh - ex: 9862...") || "9999999999"; localStorage.setItem('myPhone', myPhone); }
-set(ref(db, 'users/' + myPhone.replace(/[^0-9]/g,'').slice(-10)), { phone: myPhone, installed: true, time: Date.now() });
-
-async function loadContacts(){
-  const list=document.getElementById('list');
+async function start(){
+  const listDiv = document.getElementById('list');
   try{
-    const C=Capacitor.Plugins.Contacts;
-    await C.requestPermissions();
-    const r=await C.getContacts({projection:{name:true,phones:true}});
-    const contacts=r.contacts.filter(x=>x.name&&x.name.display).slice(0,100);
+    // 1. Permission check - Capacitor awm lo chuan browser a ni
+    let contacts = [];
+    if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Contacts){
+        const {Contacts} = window.Capacitor.Plugins;
+        const perm = await Contacts.requestPermissions();
+        if(perm.contacts!== 'granted'){
+            listDiv.innerHTML = "Contact permission Allow rawh.<br><button onclick='location.reload()' style='margin-top:10px;padding:8px 15px'>Reload</button>";
+            return;
+        }
+        const result = await Contacts.getContacts({projection:{name:true,phones:true}});
+        contacts = result.contacts || [];
+    } else {
+        // Browser testing tan
+        listDiv.innerHTML = "Browser ah contact a lang lo - APK ah a lang ang";
+        return;
+    }
 
-    // Firebase users la chhuak
-    const snap = await get(child(ref(db), 'users'));
-    const installedUsers = snap.exists()? Object.keys(snap.val()) : [];
+    if(contacts.length===0){
+        listDiv.innerHTML = "Contact a awm lo";
+        return;
+    }
 
-    list.innerHTML=contacts.map(x=>{
-      const name=x.name.display.replace(/'/g,"");
-      const rawPhone=(x.phones?.[0]?.number||'').replace(/[^0-9]/g,'').slice(-10);
-      const isInstalled = installedUsers.includes(rawPhone);
-      return `<div class="contact"><div class="left"><div class="avatar">${x.name.display[0].toUpperCase()}</div><div><b>${x.name.display}</b><br><small style="color:#8696a0">${x.phones?.[0]?.number||''} ${isInstalled?'• MzApps hmang':''}</small></div></div>${isInstalled?`<button class="btn btn-chat" onclick="openChat('${name}','${rawPhone}')">CHAT</button>`:`<button class="btn btn-invite" onclick="invite('${name}')">INVITE</button>`}</div>`;
-    }).join('');
-  }catch(e){ list.innerHTML=`<p style='text-align:center'>${e.message}<br>Browser ah chuan contact a lang lo - APK ah chiah a lang ang</p>`; }
+    // 2. Firebase users la - FAST
+    const snap = await db.ref('users').once('value');
+    const users = snap.val() || {};
+    const userPhones = new Set(Object.values(users).map(u=> (u.phone||'').replace(/\D/g,'').slice(-10) ));
+
+    // 3. Show
+    listDiv.innerHTML = "";
+    listDiv.style.textAlign = "left";
+    contacts.forEach(c=>{
+        if(!c.phones ||!c.phones[0]) return;
+        let phone = c.phones[0].number.replace(/\D/g,'').slice(-10);
+        let name = c.name?.display || "Unknown";
+        let isMzUser = userPhones.has(phone);
+        let div = document.createElement('div');
+        div.className = "item";
+        div.innerHTML = `<span>${name}<br><small style='color:#8696a0'>${phone}</small></span><button class='btn ${isMzUser?'chat':'invite'}'>${isMzUser?'CHAT':'INVITE'}</button>`;
+        if(isMzUser) div.onclick = ()=> location.href='chat.html?user='+phone;
+        listDiv.appendChild(div);
+    });
+
+  }catch(e){
+    document.getElementById('list').innerHTML = "Error: "+e.message+"<br><button onclick='location.reload()'>Retry</button>";
+    console.log(e);
+  }
 }
-window.openChat=(name,phone)=>{ localStorage.setItem('chat_name',name); localStorage.setItem('chat_phone',phone); location.href='chat.html'; }
-window.invite=(name)=>{ const msg=`Hey ${name}! MzApps hmang ve rawh - kan chat theih nan: https://mz-apps.vercel.app`; if(navigator.share){ navigator.share({text:msg}); }else{ alert(msg); } }
-loadContacts();
+setTimeout(start, 500);
 </script>
-<script src="capacitor.js"></script>
-</body></html>
+</body>
+</html>
