@@ -1,40 +1,118 @@
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>MzApps</title>
-<style>body{background:#111b21;color:#fff;margin:0;font-family:sans-serif}.h{background:#202c33;padding:15px;font-weight:bold;display:flex;justify-content:space-between;align-items:center}.tabs{display:flex;justify-content:space-around;background:#202c33;color:#00a884;padding:12px;border-bottom:1px solid #111b21}.item{display:flex;justify-content:space-between;align-items:center;padding:14px;border-bottom:1px solid #1f2c34}.btn{padding:8px 18px;border-radius:20px;font-size:13px;border:none;font-weight:bold}.chat{background:#00a884;color:#fff}.invite{background:#1f2c34;color:#00a884;border:1px solid #00a884}input{width:90%;margin:10px 5%;padding:10px;border-radius:8px;border:none;background:#202c33;color:#fff}</style>
+<style>
+body{background:#111b21;color:#fff;margin:0;font-family:sans-serif;height:100vh;display:flex;flex-direction:column}
+.h{background:#202c33;padding:14px;font-weight:bold;display:flex;justify-content:space-between;align-items:center}
+.tabs{display:flex;background:#202c33;color:#8696a0}.tabs div{flex:1;text-align:center;padding:14px;border-bottom:3px solid transparent}.tabs div.active{color:#00a884;border-color:#00a884}
+.searchBox{padding:8px;background:#111b21}.searchBox input{width:94%;padding:12px;border-radius:10px;border:none;background:#202c33;color:#fff}
+.list{flex:1;overflow:auto}.item{display:flex;gap:12px;padding:12px;border-bottom:1px solid #1f2c34;align-items:center}
+.avatar{width:48px;height:48px;border-radius:50%;background:#00a884;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0}
+.fab{position:fixed;bottom:20px;right:20px;width:56px;height:56px;background:#00a884;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;border:none;color:#fff}
+.modal{display:none;position:fixed;inset:0;background:#111b21;z-index:10;flex-direction:column}
+mark{background:#00a884;color:#fff;padding:0 2px;border-radius:2px}
+</style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head><body>
-<div class="h"><span>MzApps</span><small id="c" style="color:#8696a0"></small></div>
-<div class="tabs"><span>Chats</span><span>Status</span><span>Calls</span></div>
-<input id="search" placeholder="Search contact..." onkeyup="filter()">
-<div id="list" style="text-align:center;color:#8696a0;padding:20px">Loading...</div>
+<div class="h"><span>MzApps</span><span>⋮</span></div>
+<div class="tabs"><div id="tChat" class="active" onclick="showTab('chat')">Chats</div><div id="tStatus" onclick="showTab('status')">Status</div><div id="tCalls" onclick="showTab('calls')">Calls</div></div>
+<div class="searchBox"><input id="mainSearch" placeholder="Search..." oninput="mainFilter()"></div>
+
+<div id="chatList" class="list"></div>
+<div id="statusList" class="list" style="display:none"><div class="item" onclick="addStatus()"><div class="avatar" style="background:#333">+</div><div><b>My status</b><br><small style="color:#8696a0">Tap to add</small></div></div><div id="statusItems"></div></div>
+<div id="callsList" class="list" style="display:none;padding:20px;color:#8696a0;text-align:center">No calls yet</div>
+
+<button class="fab" id="fab" onclick="openContacts()">+</button>
+
+<div id="contactModal" class="modal">
+ <div class="h"><span onclick="closeContacts()" style="font-size:24px">←</span><b>Select contact - <span id="cnt">0</span></b></div>
+ <div class="searchBox"><input id="cSearch" placeholder="Search contact..." oninput="contactFilter()"></div>
+ <div id="contactList" class="list"></div>
+</div>
+
 <script>
 const firebaseConfig={apiKey:"AIzaSyBc6P6havWW5Re2V6FBPz3yToQ5i_ihAcw",authDomain:"thawnthu-e3b68.firebaseapp.com",databaseURL:"https://thawnthu-e3b68-default-rtdb.firebaseio.com",projectId:"thawnthu-e3b68"};
 firebase.initializeApp(firebaseConfig); const db=firebase.database();
-let allContacts=[];
+const myPhone=localStorage.getItem('myPhone')||"8730"+Math.floor(Math.random()*10000); localStorage.setItem('myPhone',myPhone);
+let allContactsData=[]; let currentQ="";
 
-function filter(){let q=document.getElementById('search').value.toLowerCase();document.querySelectorAll('.item').forEach(el=>{el.style.display=el.innerText.toLowerCase().includes(q)?'flex':'none'})}
-function invite(n,p){let m=`Ka MzApps hmang ve rawh ${n}! Mizo WhatsApp thar a nia: https://...`; window.location.href=`sms:${p}?body=${encodeURIComponent(m)}`}
+function highlight(text,q){ if(!q) return text; let regex=new RegExp(`(${q})`,'gi'); return text.replace(regex,'<mark>$1</mark>'); }
 
-async function start(){
- const list=document.getElementById('list');
- let P=window.Capacitor.Plugins.Contacts||window.Capacitor.Plugins.CapacitorCommunityContacts;
- const r=await P.getContacts({projection:{name:true,phones:true}}); 
- allContacts=r.contacts||[]; allContacts.sort((a,b)=>(a.name?.display||"").localeCompare(b.name?.display||""));
- document.getElementById('c').innerText=allContacts.length+" contacts";
- 
- // Firebase users - fail pawh in contact a lang tho
- let userMap={}; try{let s=await db.ref('users').once('value');let u=s.val()||{};Object.values(u).forEach(x=>{let ph=(x.phone||'').replace(/\D/g,'').slice(-10);if(ph)userMap[ph]=true})}catch(e){}
-
- list.innerHTML=""; list.style.textAlign="left";
- allContacts.forEach(c=>{
-  if(!c.phones||!c.phones[0])return; let ph=c.phones[0].number.replace(/\D/g,'').slice(-10); if(ph.length<10)return;
-  let name=c.name?.display||c.name?.given||"Unknown"; let isUser=userMap[ph];
-  let div=document.createElement('div'); div.className="item";
-  div.innerHTML=`<span style="flex:1"><b>${name}</b><br><small style='color:#8696a0'>${ph}</small></span><button class='${isUser?"btn chat":"btn invite"}' onclick="${isUser?`location.href='chat.html?user=${ph}'`:`invite('${name.replace(/'/g,'')}','${ph}')`}">${isUser?"CHAT":"INVITE"}</button>`;
-  list.appendChild(div);
+function mainFilter(){
+ let q=document.getElementById('mainSearch').value.toLowerCase(); currentQ=q;
+ document.querySelectorAll('#chatList.item, #statusItems.item').forEach(el=>{
+  let txt=el.innerText.toLowerCase(); el.style.display=txt.includes(q)?'flex':'none';
+  if(q){ el.querySelectorAll('b, small').forEach(b=>{ if(b.dataset.orig) b.innerHTML=b.dataset.orig; b.dataset.orig=b.innerHTML; b.innerHTML=highlight(b.innerHTML,q); }); }
+  else{ el.querySelectorAll('b, small').forEach(b=>{ if(b.dataset.orig) b.innerHTML=b.dataset.orig; }); }
  });
 }
-start();
+function contactFilter(){
+ let q=document.getElementById('cSearch').value.toLowerCase();
+ document.querySelectorAll('#contactList.item').forEach(el=>{
+  el.style.display=el.innerText.toLowerCase().includes(q)?'flex':'none';
+  if(q){ el.querySelectorAll('b').forEach(b=>{ let orig=b.dataset.orig||b.innerText; b.dataset.orig=orig; b.innerHTML=highlight(orig,q); }); }
+ });
+}
+
+function showTab(t){
+ document.getElementById('chatList').style.display=t==='chat'?'block':'none';
+ document.getElementById('statusList').style.display=t==='status'?'block':'none';
+ document.getElementById('callsList').style.display=t==='calls'?'block':'none';
+ document.getElementById('tChat').className=t==='chat'?'active':''; document.getElementById('tStatus').className=t==='status'?'active':''; document.getElementById('tCalls').className=t==='calls'?'active':'';
+ document.getElementById('fab').style.display=t==='calls'?'none':'flex';
+ document.getElementById('fab').innerText=t==='status'?'📷':'+';
+}
+
+// REALTIME CHAT - chat thar a chungah, chak tha
+function loadChatsRealtime(){
+ let cl=document.getElementById('chatList');
+ db.ref('messages').on('value', snap=>{
+  let chats=[]; snap.forEach(chatSnap=>{
+   let id=chatSnap.key; if(!id.includes(myPhone)) return;
+   let msgs=Object.values(chatSnap.val()); if(!msgs.length) return;
+   let last=msgs[msgs.length-1]; let other=id.split('_').find(p=>p!==myPhone);
+   chats.push({ph:other, last:last, time:last.time});
+  });
+  chats.sort((a,b)=>b.time-a.time); // thar a chungah
+  cl.innerHTML=""; if(chats.length===0){cl.innerHTML='<div style="text-align:center;padding:40px;color:#8696a0">No chats<br><small>Tap + to start</small></div>'; return;}
+  chats.forEach(({ph,last})=>{
+   let d=document.createElement('div'); d.className='item'; d.dataset.ph=ph;
+   d.innerHTML=`<div class="avatar">${ph.slice(-2)}</div><div style="flex:1"><b>${ph}</b><br><small style="color:#8696a0">${last.text.slice(0,35)}</small></div><div style="text-align:right"><small style="color:#8696a0">${new Date(last.time).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</small><br><small style="color:${last.status==='read'?'#53bdeb':'#8696a0'}">${last.status==='read'?'✓✓':last.status==='delivered'?'✓✓':'✓'}</small></div>`;
+   d.onclick=()=>location.href='chat.html?user='+ph; cl.appendChild(d);
+  });
+  mainFilter();
+ });
+}
+
+async function openContacts(){
+ document.getElementById('contactModal').style.display='flex';
+ if(allContactsData.length===0){
+  let P=window.Capacitor.Plugins.Contacts||window.Capacitor.Plugins.CapacitorCommunityContacts;
+  let res=await P.getContacts({projection:{name:true,phones:true}});
+  allContactsData=res.contacts||[]; allContactsData.sort((a,b)=>(a.name?.display||"").localeCompare(b.name?.display||""));
+ }
+ document.getElementById('cnt').innerText=allContactsData.length;
+ let list=document.getElementById('contactList'); list.innerHTML="";
+ allContactsData.forEach(c=>{
+  if(!c.phones||!c.phones[0])return; let ph=c.phones[0].number.replace(/\D/g,'').slice(-10); if(ph.length<10)return; let nm=c.name?.display||c.name?.given||"Unknown";
+  let d=document.createElement('div'); d.className='item'; d.innerHTML=`<div class="avatar">${nm[0]}</div><div style="flex:1"><b>${nm}</b><br><small style="color:#8696a0">${ph}</small></div><button style="padding:6px 12px;border-radius:20px;border:1px solid #00a884;background:#202c33;color:#00a884" onclick="event.stopPropagation();location.href='sms:${ph}'">INVITE</button>`;
+  d.onclick=()=>location.href='chat.html?user='+ph+'&name='+encodeURIComponent(nm); list.appendChild(d);
+ });
+}
+function closeContacts(){document.getElementById('contactModal').style.display='none'}
+
+function loadStatus(){
+ db.ref('status').on('value', snap=>{
+  let div=document.getElementById('statusItems'); div.innerHTML="";
+  let arr=[]; snap.forEach(s=>arr.push(s.val())); arr.sort((a,b)=>b.time-a.time);
+  arr.forEach(st=>{
+   let d=document.createElement('div'); d.className='item'; d.innerHTML=`<div class="avatar" style="border:3px solid #00a884">${st.name[0]}</div><div><b>${st.name}</b><br><small style="color:#8696a0">${st.text.slice(0,30)} • ${new Date(st.time).toLocaleTimeString()}</small></div>`;
+   div.appendChild(d);
+  });
+ });
+}
+function addStatus(){let t=prompt("Status:"); if(!t)return; db.ref('status').push({name:myPhone,text:t,time:Date.now()});}
+
+loadChatsRealtime(); loadStatus();
 </script></body></html>
