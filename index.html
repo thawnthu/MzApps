@@ -1,94 +1,180 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MzChat</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Mz Super App - WhatsApp+FB+Insta</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
-body{background:#111b21;color:white;height:100vh;display:flex;flex-direction:column}
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui,-apple-system}
+body{background:#111b21;color:white;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 .header{background:#008069;padding:12px 15px;display:flex;justify-content:space-between;align-items:center}
-.header b{font-size:22px}
-.plus{width:40px;height:40px;background:white;color:#008069;border-radius:50%;border:none;font-size:28px;font-weight:bold}
-#contacts{position:fixed;top:0;left:0;right:0;bottom:0;background:#111b21;z-index:10;display:none;flex-direction:column}
-#contacts.show{display:flex}
-.c-head{background:#008069;padding:15px;display:flex;justify-content:space-between;align-items:center}
-.c-list{flex:1;overflow-y:auto}
-.contact{padding:15px;border-bottom:1px solid #202c33;display:flex;gap:12px;align-items:center}
+.tabs{display:flex;background:#202c33}
+.tab{flex:1;padding:12px;text-align:center;border-bottom:3px solid transparent}
+.tab.active{border-color:#00a884;color:#00a884;font-weight:bold}
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.list{flex:1;overflow-y:auto}
+.contact{padding:12px 15px;border-bottom:1px solid #202c33;display:flex;gap:12px;align-items:center}
 .contact:active{background:#202c33}
-.avatar{width:45px;height:45px;background:#008069;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:20px}
-#chat{flex:1;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:8px;background:#0b141a}
-.msg{background:#202c33;padding:8px 12px;border-radius:8px;max-width:75%}
-.me{background:#005c4b;align-self:flex-end}
-.input-area{display:flex;padding:10px;background:#202c33;gap:8px}
-input{flex:1;padding:12px 18px;border-radius:25px;border:none;outline:none;background:#2a3942;color:white}
-button.send{background:#008069;color:white;border:none;padding:10px 18px;border-radius:25px}
-.add-box{padding:15px;display:flex;gap:8px;background:#202c33}
+.avatar{width:48px;height:48px;background:#00a884;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:20px;flex-shrink:0}
+.msg-area{flex:1;overflow-y:auto;padding:15px;display:flex;flex-direction:column;gap:8px;background:#0b141a url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')}
+.msg{background:#202c33;padding:8px 12px;border-radius:8px 8px 8px 0;max-width:78%;word-wrap:break-word}
+.me{background:#005c4b;align-self:flex-end;border-radius:8px 8px 0 8px}
+.input-bar{display:flex;padding:8px;background:#202c33;gap:8px;align-items:center}
+.input-bar input{flex:1;padding:11px 16px;border-radius:25px;border:none;background:#2a3942;color:white;outline:none}
+.send-btn{background:#00a884;border:none;width:44px;height:44px;border-radius:50%;color:white;font-size:20px}
+.post{background:#fff;color:#000;margin:8px;border-radius:10px;overflow:hidden}
+.post-head{padding:10px 12px;display:flex;gap:10px;align-items:center}
+.post img{width:100%;max-height:500px;object-fit:contain;background:#000}
+.post-actions{display:flex;gap:20px;padding:10px 12px;border-top:1px solid #eee}
+.post-actions button{border:none;background:none;font-size:15px}
+.create-post{background:#fff;margin:8px;padding:10px;border-radius:10px}
+.create-post textarea{width:100%;border:none;background:#f0f2f5;padding:10px;border-radius:8px;outline:none;resize:none;color:#000}
+.loading{padding:30px;text-align:center;opacity:0.6}
 </style>
 </head>
 <body>
-<div class="header">
-<b id="chatName">MzChat 💬</b>
-<button class="plus" onclick="openContacts()">+</button>
+<div class="header"><b>Mz Super App 🔥</b><small id="count">0 contacts</small></div>
+<div class="tabs">
+<div class="tab active" onclick="switchTab('chat')" id="t-chat">💬 Chat</div>
+<div class="tab" onclick="switchTab('feed')" id="t-feed">📸 Feed</div>
+<div class="tab" onclick="switchTab('group')" id="t-group">👥 Group</div>
 </div>
 
-<div id="contacts">
-<div class="c-head"><b>Contacts</b><button onclick="closeContacts()" style="background:none;border:none;color:white;font-size:24px">✕</button></div>
-<div class="add-box">
-<input id="newName" placeholder="Hming thar...">
-<button class="send" onclick="addContact()">Add</button>
-</div>
-<div class="c-list" id="cList"></div>
+<div class="main">
+<!-- CHAT LIST -->
+<div id="chatList" class="list"></div>
+
+<!-- CHAT VIEW -->
+<div id="chatView" style="display:none;flex:1;flex-direction:column">
+<div style="background:#202c33;padding:10px;display:flex;gap:10px;align-items:center"><button onclick="backToList()" style="background:none;border:none;color:white;font-size:20px">←</button><div class="avatar" id="cvAvatar">A</div><b id="cvName">Name</b></div>
+<div id="msgArea" class="msg-area"></div>
+<div class="input-bar"><input id="msgInput" placeholder="Message..."><button class="send-btn" onclick="sendMsg()">➤</button></div>
 </div>
 
-<div id="chat"></div>
-<div class="input-area">
-<input id="msgInput" placeholder="Message...">
-<button class="send" onclick="send()">➤</button>
+<!-- FEED -->
+<div id="feedView" style="display:none;flex:1;flex-direction:column" class="list">
+<div class="create-post"><textarea id="postText" rows="2" placeholder="Eng nge i ngaihtuah? Thu + Pic post rawh..."></textarea><div style="display:flex;justify-content:space-between;margin-top:8px"><input type="file" id="postFile" accept="image/*,video/*" style="color:#000"><button onclick="createPost()" style="background:#00a884;color:white;border:none;padding:6px 16px;border-radius:20px;font-weight:bold">Post</button></div></div>
+<div id="feedList"></div>
+</div>
+
+<!-- GROUP -->
+<div id="groupView" style="display:none;flex:1;flex-direction:column" class="list">
+<button onclick="createGroup()" style="margin:8px;background:#00a884;color:white;border:none;padding:12px;border-radius:8px;font-weight:bold">+ Group Thar Siam</button>
+<div id="groupList"></div>
+</div>
 </div>
 
 <script>
-let contacts=JSON.parse(localStorage.getItem('mzcontacts')||'[{"name":"Amuana","letter":"A"},{"name":"Zovi","letter":"Z"},{"name":"Mami","letter":"M"}]');
-let current=contacts[0].name;
-let allMsgs=JSON.parse(localStorage.getItem('mzall')||'{}');
+let contacts = JSON.parse(localStorage.getItem('mzcontacts')||'[]');
+let currentChat = null;
+let allMsgs = JSON.parse(localStorage.getItem('mzall')||'{}');
+let posts = JSON.parse(localStorage.getItem('mzposts')||'[]');
+let groups = JSON.parse(localStorage.getItem('mzgroups')||'[]');
 
-function save(){localStorage.setItem('mzcontacts',JSON.stringify(contacts));localStorage.setItem('mzall',JSON.stringify(allMsgs))}
+function save(){localStorage.setItem('mzcontacts',JSON.stringify(contacts));localStorage.setItem('mzall',JSON.stringify(allMsgs));localStorage.setItem('mzposts',JSON.stringify(posts));localStorage.setItem('mzgroups',JSON.stringify(groups))}
 
-function openContacts(){document.getElementById('contacts').classList.add('show');renderContacts()}
-function closeContacts(){document.getElementById('contacts').classList.remove('show')}
+// AUTO LOAD CONTACTS - A LANG NGHAL VEK
+async function autoLoadContacts(){
+  document.getElementById('chatList').innerHTML='<div class="loading">📱 Contact zawng mek...<br><small>Phalna dil mek</small></div>';
+  try{
+    // Try Capacitor (APK dik tak ah)
+    if(window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Contacts){
+      let perm = await window.Capacitor.Plugins.Contacts.requestPermissions();
+      let res = await window.Capacitor.Plugins.Contacts.getContacts({projection:{name:true,phones:true}});
+      contacts = res.contacts.filter(c=>c.name?.display).map(c=>({name:c.name.display, phone:c.phones?.[0]?.number||'', letter:c.name.display[0].toUpperCase()}));
+    }
+    // Try Web Contact Picker (Chrome)
+    else if('contacts' in navigator && 'ContactsManager' in window){
+      let list = await navigator.contacts.select(['name','tel'],{multiple:true});
+      contacts = list.map(c=>({name:c.name[0], phone:c.tel[0]||'', letter:c.name[0][0].toUpperCase()}));
+    }
+    // Fallback - demo data
+    if(contacts.length==0) throw 'no contact';
+    save(); renderContacts();
+  }catch(e){
+    // A la awm loh chuan demo / a save tawh hmang
+    if(contacts.length==0){
+      contacts=[{name:'Amuana',phone:'9862000001',letter:'A'},{name:'Zovi',phone:'9862000002',letter:'Z'},{name:'Mami',phone:'9862000003',letter:'M'}];
+    }
+    renderContacts();
+  }
+}
 
 function renderContacts(){
-let html='';contacts.forEach(c=>{
-html+=`<div class="contact" onclick="selectContact('${c.name}')"><div class="avatar">${c.letter}</div><div><b>${c.name}</b><br><small style="opacity:0.6">Tap to chat</small></div></div>`;
-});
-document.getElementById('cList').innerHTML=html;
+  document.getElementById('count').innerText=contacts.length+' contacts';
+  let html='';
+  if(contacts.length==0) html='<div class="loading">Contact awm lo<br><button onclick="autoLoadContacts()" style="margin-top:10px;background:#00a884;color:white;border:none;padding:8px 14px;border-radius:20px">📱 Contact La Lut</button></div>';
+  else contacts.forEach((c,i)=>{
+    let last = allMsgs[c.name]?.[allMsgs[c.name].length-1]?.text||'Tap to chat';
+    html+=`<div class="contact" onclick="openChat('${c.name}')"><div class="avatar">${c.letter}</div><div style="flex:1"><b>${c.name}</b><br><small style="opacity:0.6">${last.substring(0,30)}</small></div><small style="opacity:0.4">${c.phone}</small></div>`;
+  });
+  document.getElementById('chatList').innerHTML=html;
 }
 
-function selectContact(name){current=name;document.getElementById('chatName').innerText=name;closeContacts();renderChat()}
-
-function addContact(){
-let n=document.getElementById('newName').value.trim();if(!n)return;
-contacts.push({name:n,letter:n[0].toUpperCase()});document.getElementById('newName').value='';save();renderContacts();
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('t-'+t).classList.add('active');
+  document.getElementById('chatList').style.display=t=='chat'&&!currentChat?'block':'none';
+  document.getElementById('chatView').style.display=t=='chat'&&currentChat?'flex':'none';
+  document.getElementById('feedView').style.display=t=='feed'?'flex':'none';
+  document.getElementById('groupView').style.display=t=='group'?'flex':'none';
+  if(t=='chat'&&!currentChat) renderContacts();
+  if(t=='feed') renderFeed();
+  if(t=='group') renderGroups();
 }
 
-function renderChat(){
-let chat=document.getElementById('chat');let msgs=allMsgs[current]||[];chat.innerHTML='';
-if(msgs.length==0){chat.innerHTML=`<div class="msg">${current} nen in chat tan rawh! 👋</div>`;return}
-msgs.forEach(m=>{let d=document.createElement('div');d.className='msg '+(m.me?'me':'');d.textContent=m.text;chat.appendChild(d)});
-chat.scrollTop=chat.scrollHeight;
+function openChat(name){
+  currentChat=name;
+  document.getElementById('cvName').innerText=name;
+  document.getElementById('cvAvatar').innerText=name[0].toUpperCase();
+  document.getElementById('chatList').style.display='none';
+  document.getElementById('chatView').style.display='flex';
+  renderMsgs();
 }
-
-function send(){
-let input=document.getElementById('msgInput');if(!input.value.trim())return;
-if(!allMsgs[current])allMsgs[current]=[];
-allMsgs[current].push({text:input.value,me:true});save();input.value='';renderChat();
-setTimeout(()=>{allMsgs[current].push({text:"Ok Boss! 😊",me:false});save();renderChat()},800);
+function backToList(){currentChat=null;document.getElementById('chatView').style.display='none';document.getElementById('chatList').style.display='block';renderContacts()}
+function renderMsgs(){
+  let area=document.getElementById('msgArea');let msgs=allMsgs[currentChat]||[];area.innerHTML='';
+  if(msgs.length==0) area.innerHTML=`<div class="msg">${currentChat} nen chat tan rawh 👋</div>`;
+  else msgs.forEach(m=>{let d=document.createElement('div');d.className='msg '+(m.me?'me':'');d.textContent=m.text;area.appendChild(d)});
+  area.scrollTop=area.scrollHeight;
 }
+function sendMsg(){
+  let inp=document.getElementById('msgInput');if(!inp.value.trim()||!currentChat) return;
+  if(!allMsgs[currentChat]) allMsgs[currentChat]=[];
+  allMsgs[currentChat].push({text:inp.value,me:true,time:Date.now()});save();inp.value='';renderMsgs();
+  setTimeout(()=>{allMsgs[currentChat].push({text:'Ok Boss! 👍',me:false});save();renderMsgs()},600);
+}
+document.getElementById('msgInput').addEventListener('keypress',e=>{if(e.key==='Enter')sendMsg()});
 
-document.getElementById('msgInput').addEventListener('keypress',e=>{if(e.key==='Enter')send()});
-document.getElementById('chatName').innerText=current;
-renderChat();
-renderContacts();
+// FEED - Facebook + Instagram ang
+function renderFeed(){
+  let el=document.getElementById('feedList');el.innerHTML='';
+  [...posts].reverse().forEach((p,i)=>{
+    let idx=posts.length-1-i;
+    el.innerHTML+=`<div class="post"><div class="post-head"><div class="avatar" style="width:36px;height:36px;font-size:14px">${p.by[0]}</div><div><b style="font-size:14px">${p.by}</b><br><small style="opacity:0.6">${new Date(p.time).toLocaleString()}</small></div></div><div style="padding:0 12px 8px">${p.thu}</div>${p.pic?`<img src="${p.pic}">`:''}<div class="post-actions"><button onclick="likePost(${idx})">❤️ ${p.likes||0} Like</button><button>💬 Comment</button><button>↗️ Share</button></div></div>`;
+  });
+}
+function createPost(){
+  let thu=document.getElementById('postText').value;let file=document.getElementById('postFile').files[0];
+  if(!thu&&!file) return;
+  if(file){
+    let reader=new FileReader();reader.onload=e=>{
+      posts.push({thu, pic:e.target.result, by:'Boss', time:Date.now(), likes:0});save();document.getElementById('postText').value='';document.getElementById('postFile').value='';renderFeed();
+    };reader.readAsDataURL(file);
+  }else{posts.push({thu, pic:'', by:'Boss', time:Date.now(), likes:0});save();document.getElementById('postText').value='';renderFeed()}
+}
+function likePost(i){posts[i].likes=(posts[i].likes||0)+1;save();renderFeed()}
+
+// GROUP - Facebook ang
+function renderGroups(){
+  let el=document.getElementById('groupList');el.innerHTML=groups.length==0?'<div class="loading">Group la awm lo</div>':'';
+  groups.forEach(g=>{el.innerHTML+=`<div class="contact"><div class="avatar">👥</div><div><b>${g.name}</b><br><small>${g.members} members</small></div></div>`});
+}
+function createGroup(){let n=prompt('Group hming:');if(!n) return;groups.push({name:n,members:1});save();renderGroups()}
+
+// START - Contact auto load
+autoLoadContacts();
+renderFeed();renderGroups();
 </script>
 </body>
 </html>
