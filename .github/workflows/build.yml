@@ -5,40 +5,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with: {node-version: 18}
-
-      - name: Fix and Install
-        run: |
-          rm -rf node_modules package-lock.json
-          npm init -y || true
-          npm install --legacy-peer-deps @capacitor/core@5 @capacitor/cli@5 @capacitor/android@5
-          npm install --legacy-peer-deps @capacitor-community/contacts || echo "skip contacts"
-          npx cap add android || true
-          npx cap copy || true
-
-      - name: Add Contact Permission to MzApps
-        run: |
-          FILE=android/app/src/main/AndroidManifest.xml
-          if [ -f "$FILE" ]; then
-            if! grep -q "READ_CONTACTS" $FILE; then
-              sed -i 's|</manifest>|<uses-permission android:name="android.permission.READ_CONTACTS" />\n</manifest>|' $FILE
-            fi
-            cat $FILE
-          fi
-
       - uses: actions/setup-java@v4
         with: {distribution: temurin, java-version: 17}
 
-      - name: Build APK
+      - name: Build MzApps Native APK
         run: |
-          cd android
-          chmod +x gradlew
-         ./gradlew assembleDebug
+          rm -rf node_modules package-lock.json android
+          npm install --legacy-peer-deps
+          npx cap add android
+          echo '{"appId":"com.mzapps.app","appName":"MzApps","webDir":".","plugins":{"Contacts":{"permissions":["READ_CONTACTS"]}}}' > capacitor.config.json
+          npx cap copy
+          # Add READ_CONTACTS permission - MzApps tan
+          sed -i 's/<\/manifest>/<uses-permission android:name="android.permission.READ_CONTACTS" \/>\n<uses-permission android:name="android.permission.WRITE_CONTACTS" \/>\n<\/manifest>/' android/app/src/main/AndroidManifest.xml
+          cd android && chmod +x gradlew &&./gradlew assembleDebug
 
       - name: Upload MzApps APK
         uses: actions/upload-artifact@v4
         with:
-          name: MzApps-APK
+          name: MzApps-APK-WhatsApp-Style
           path: android/app/build/outputs/apk/debug/app-debug.apk
