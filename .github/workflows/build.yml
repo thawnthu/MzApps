@@ -9,45 +9,46 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      - name: Install dependencies
-        run: npm install || true
-
-      - name: Add Android platform
+      - name: Install deps
         run: |
-          npx cap add android || true
-          npx cap sync android
+          npm install @capacitor/cli @capacitor/core @capacitor/android --save || true
+          npm install || true
+
+      - name: Prepare Android
+        run: |
+          mkdir -p www
+          echo "<html><body>Loading</body></html>" > www/index.html || true
+          ls -la
+          npx cap add android || echo "android exists"
+          npx cap sync android || true
+          ls -la android/
+          ls -la android/app/ || true
 
       - name: Add Contact Permission
         run: |
-          MANIFEST="android/app/src/main/AndroidManifest.xml"
-          echo "Before fix:"
-          cat $MANIFEST
-          # Add permissions if not exists
-          if ! grep -q "READ_CONTACTS" $MANIFEST; then
-            sed -i 's/<uses-permission android:name="android.permission.INTERNET" \/>/<uses-permission android:name="android.permission.INTERNET" \/>\n    <uses-permission android:name="android.permission.READ_CONTACTS" \/>\n    <uses-permission android:name="android.permission.WRITE_CONTACTS" \/>\n    <uses-permission android:name="android.permission.GET_ACCOUNTS" \/>/' $MANIFEST
+          FILE=android/app/src/main/AndroidManifest.xml
+          cat $FILE
+          if ! grep -q "READ_CONTACTS" $FILE; then
+            sed -i 's/<uses-permission android:name="android.permission.INTERNET" \/>/<uses-permission android:name="android.permission.INTERNET" \/>\n    <uses-permission android:name="android.permission.READ_CONTACTS" \/>\n    <uses-permission android:name="android.permission.WRITE_CONTACTS" \/>\n    <uses-permission android:name="android.permission.GET_ACCOUNTS" \/>/' $FILE
           fi
-          echo "After fix:"
-          cat $MANIFEST
+          cat $FILE
 
       - name: Build APK
         run: |
           cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          chmod +x ./gradlew || chmod +x gradlew
+          ./gradlew assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
