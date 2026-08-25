@@ -1,24 +1,35 @@
-<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MzApps Chat</title>
-<style>body{margin:0;background:#111;color:#fff;font-family:sans-serif}.h{padding:14px;background:#202c33;position:sticky;top:0}.c{padding:12px;border-bottom:1px solid #222}</style>
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MzApps</title>
+<style>body{margin:0;background:#111;color:#fff;font-family:sans-serif}.h{padding:15px;background:#202c33;position:sticky;top:0;display:flex;justify-content:space-between;align-items:center}button{background:#00a884;color:#fff;border:0;padding:10px 16px;border-radius:8px;font-weight:bold}.c{padding:14px;border-bottom:1px solid #222;display:flex;justify-content:space-between}</style>
 </head><body>
-<div class="h"><b id="cnt">MzApps - Contact 0</b> <button onclick="getC()" style="float:right;background:#00a884;color:#fff;border:0;padding:6px 12px;border-radius:6px">Reload</button></div>
-<div id="list">Hmet rawh...</div>
-<script type="module">
-import { Contacts } from 'https://cdn.jsdelivr.net/npm/@capacitor-community/contacts@5/dist/esm/index.js';
-window.getC = async ()=>{
+<div class="h"><b>MzApps</b><button onclick="pick()">+ Contact Thlang</button></div>
+<div style="padding:10px;color:#8696a0;font-size:13px">Contact thlan te a lang ang - Install ngai lo, auto-update zel</div>
+<div id="list"></div>
+
+<script>
+let allContacts = JSON.parse(localStorage.getItem('mz_contacts')||'[]');
+function render(){
+  let l=document.getElementById('list'); l.innerHTML='';
+  allContacts.forEach((c,i)=>{
+    let d=document.createElement('div'); d.className='c';
+    d.innerHTML=`<div><b>${c.name}</b><br><small>${c.tel||''}</small></div><small onclick="del(${i})" style="color:red">X</small>`;
+    d.onclick=()=>alert('Chat with '+c.name);
+    l.appendChild(d);
+  });
+}
+function del(i){ allContacts.splice(i,1); localStorage.setItem('mz_contacts',JSON.stringify(allContacts)); render(); }
+async function pick(){
   try{
-    let p = await Contacts.requestPermissions();
-    if(p.contacts!=='granted'){ alert('Permission pe rawh'); return; }
-    let r = await Contacts.getContacts({ projection:{name:true, phones:true}});
-    document.getElementById('cnt').innerText='Contact - '+r.contacts.length;
-    let l=document.getElementById('list'); l.innerHTML='';
-    r.contacts.filter(c=>c.name?.display).forEach(c=>{
-      let d=document.createElement('div'); d.className='c';
-      d.innerHTML=`<b>${c.name.display}</b><br><small>${c.phones?.[0]?.number||''}</small>`;
-      d.onclick=()=>alert('Chat with '+c.name.display);
-      l.appendChild(d);
+    if(!('contacts' in navigator)){ alert('He phone hian Contact Picker a support lo - Chrome Update rawh'); return; }
+    let contacts = await navigator.contacts.select(['name','tel'], {multiple:true});
+    contacts.forEach(c=>{
+      allContacts.push({name:c.name[0], tel:c.tel[0]||''});
     });
-  }catch(e){ alert(e.message); }
-};
-getC();
-</script></body></html>
+    localStorage.setItem('mz_contacts',JSON.stringify(allContacts));
+    render();
+  }catch(e){ console.log(e); }
+}
+render();
+</script>
+</body></html>
