@@ -122,3 +122,95 @@ class MainActivity : Activity() {
         inputRow.addView(input, LinearLayout.LayoutParams(0,-2,1f)); inputRow.addView(send)
         chatView.addView(chatH); chatView.addView(scroll); chatView.addView(inputRow)
     }
+
+        fun createContactView() {
+        contactView = LinearLayout(this).apply{orientation=LinearLayout.VERTICAL; visibility=View.GONE; setBackgroundColor(0xFF111B21.toInt())}
+        val h = LinearLayout(this).apply{setBackgroundColor(0xFF202C33.toInt()); setPadding(20,40,20,20)}
+        val b = TextView(this).apply{text="← Contacts"; textSize=18f; setTextColor(-1)}
+        b.setOnClickListener{showMain()}
+        h.addView(b)
+        val searchC = EditText(this).apply{hint="Search..."; setTextColor(-1); setHintTextColor(0xFF8696A0.toInt()); setBackgroundColor(0xFF2A3942.toInt()); setPadding(30,20,30,20)}
+        val lv = ListView(this)
+        contactView.addView(h); contactView.addView(searchC); contactView.addView(lv, LinearLayout.LayoutParams(-1,0,1f))
+        loadContacts(lv)
+    }
+    fun createStatusView() {
+        statusView = LinearLayout(this).apply{orientation=LinearLayout.VERTICAL; visibility=View.GONE; setBackgroundColor(0xFF111B21.toInt())}
+        val t = TextView(this).apply{text="Status 24h"; setPadding(30,30,30,30); setTextColor(-1)}
+        val btn = Button(this).apply{text="+ Status"; setBackgroundColor(0xFF00A884.toInt())}
+        btn.setOnClickListener{val e = EditText(this); android.app.AlertDialog.Builder(this).setView(e).setPositiveButton("Post"){_,_-> postStatus(e.text.toString())}.show()}
+        statusView.addView(t); statusView.addView(btn)
+    }
+    fun showLogin(){loginView.visibility=View.VISIBLE; mainView.visibility=View.GONE; chatView.visibility=View.GONE; contactView.visibility=View.GONE}
+    fun showMain(){loginView.visibility=View.GONE; mainView.visibility=View.VISIBLE; chatView.visibility=View.GONE; contactView.visibility=View.GONE; statusView.visibility=View.GONE; renderList()}
+    fun showContacts(){mainView.visibility=View.GONE; contactView.visibility=View.VISIBLE}
+    fun showMenu(){
+        val opts = arrayOf("Profile: "+myNumber,"Settings Dark/Font","Logout")
+        android.app.AlertDialog.Builder(this).setTitle("MzApps").setItems(opts){_,i-> when(i){0->showProfile();1->showSettings();2->{getSharedPreferences("mz", MODE_PRIVATE).edit().clear().apply(); showLogin()}}}.show()
+    }
+    fun showProfile(){
+        val l = LinearLayout(this).apply{orientation=LinearLayout.VERTICAL; setPadding(40,40,40,40)}
+        val name = TextView(this).apply{text=myNumber; textSize=20f; setTextColor(-1); gravity=Gravity.CENTER}
+        l.addView(name); android.app.AlertDialog.Builder(this).setTitle("Profile").setView(l).show()
+    }
+    fun showSettings(){
+        val l = LinearLayout(this).apply{orientation=LinearLayout.VERTICAL; setPadding(40,40,40,40)}
+        val dark = CheckBox(this).apply{text="Dark Mode"; isChecked=isDark; setTextColor(-1)}
+        dark.setOnCheckedChangeListener{_,b-> isDark=b; getSharedPreferences("mz", MODE_PRIVATE).edit().putBoolean("dark", b).apply()}
+        l.addView(dark); android.app.AlertDialog.Builder(this).setTitle("Settings").setView(l).show()
+    }
+    fun loadContacts(lv: ListView? = null) {
+        try {
+            val c = contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,null,null,null,null)
+            contacts.clear()
+            while(c!!.moveToNext()){
+                val name = c.getString(c.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME))
+                val num = c.getString(c.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                contacts.add(name to num)
+            }
+            c!!.close()
+            if(lv!=null) lv.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, contacts.map{it.first})
+            renderList()
+        } catch(e: Exception){}
+    }
+    fun renderList(){ listView.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, contacts.map{it.first+"\n"+it.second}) ; listView.setOnItemClickListener{_,_,i,_ -> openChat(i)} }
+    fun filterChats(q: String){ val f = contacts.filter{it.first.contains(q, true)}; listView.adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, f.map{it.first}) }
+    fun openChat(i:Int){curIdx=i; cName.text=contacts[i].first; mainView.visibility=View.GONE; chatView.visibility=View.VISIBLE; renderMsgs()}
+    fun renderMsgs(){
+        msgsBox.removeAllViews()
+        val key = if(curIdx>=0) contacts[curIdx].second else return
+        val jo = JSONObject(getSharedPreferences("mz", MODE_PRIVATE).getString("chats","{}")!!)
+        val arr = jo.optJSONArray(key)?: return
+        for(i in 0 until arr.length()){
+            val o = arr.getJSONObject(i)
+            val row = LinearLayout(this).apply{orientation=LinearLayout.HORIZONTAL; gravity=if(o.getBoolean("me")) Gravity.END else Gravity.START; setPadding(10,5,10,5)}
+            val tick = if(o.getBoolean("me")) "✓✓ " else ""
+            val tv = TextView(this).apply{text=o.getString("t")+" $tick"; setPadding(24,16,24,16); textSize=fontSize; setTextColor(-1); setBackgroundColor(if(o.getBoolean("me")) 0xFF005C4B.toInt() else 0xFF202C33.toInt())}
+            row.addView(tv); msgsBox.addView(row)
+        }
+    }
+    fun saveChat(num:String, msg:String, me:Boolean){
+        val prefs = getSharedPreferences("mz", MODE_PRIVATE)
+        val jo = JSONObject(prefs.getString("chats","{}")!!)
+        val arr = jo.optJSONArray(num)?: JSONArray()
+        val o = JSONObject().put("t",msg).put("me",me)
+        arr.put(o); jo.put(num, arr); prefs.edit().putString("chats", jo.toString()).apply()
+    }
+    fun sendMsg(){
+        val t = input.text.toString().trim(); if(t.isEmpty()||curIdx==-1) return
+        val num = contacts[curIdx].second
+        try { SmsManager.getDefault().sendTextMessage(num, null, "MZMSG:$t", null, null) } catch(e: Exception){}
+        saveChat(num, t, true); input.setText(""); renderMsgs()
+    }
+    fun postStatus(txt: String){ for(c in contacts) { try{ SmsManager.getDefault().sendTextMessage(c.second, null, "MZSTATUS:$txt", null, null) } catch(e: Exception){} } Toast.makeText(this, "Status posted!", Toast.LENGTH_SHORT).show() }
+    fun loadStatus(){}
+    fun pickImage(){ val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI); startActivityForResult(intent, 101) }
+    override fun onActivityResult(r:Int, res:Int, d:Intent?){ super.onActivityResult(r,res,d); if(r==101 && res==RESULT_OK){ if(curIdx>=0){ val num = contacts[curIdx].second; saveChat(num, "[Image]", true); renderMsgs() } } }
+    override fun onNewIntent(i: Intent){ super.onNewIntent(i); handleIntent(i) }
+    fun handleIntent(i: Intent){
+        val from = i.getStringExtra("sms_from")?: return
+        val body = i.getStringExtra("sms_body")?: return
+        saveChat(from, body, false)
+        if(curIdx>=0 && contacts[curIdx].second.contains(from.takeLast(4))) renderMsgs()
+    }
+}
