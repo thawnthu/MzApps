@@ -5,7 +5,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build APK
-        run: |
-          chmod +x gradlew
-         ./gradlew assembleDebug
+      - run: chmod +x gradlew &&./gradlew assembleDebug
